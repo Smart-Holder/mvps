@@ -1,0 +1,18 @@
+{
+  "importOrder": [
+    "<THIRD_PARTY_MODULES>",
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "importOrderParserPlugins": [
+    "typescript",
+    "decorators-legacy"
+  ],
+  "importOrderSeparation": true,
+  "plugins": [
+    "prettier-plugin-sort-imports-by-identifier"
+  ],
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "none"
+}
