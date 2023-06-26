@@ -16,7 +16,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   app.enableCors()
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix('service-api')
 
   const config = app.get(ConfigService)
   const port = config.get<number>('PORT')

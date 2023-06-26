@@ -9,5 +9,8 @@ export default Joi.object({
   APP_NAME: Joi.string().default(pkg.name),
   RATE_LIMITER_LOGGER: Joi.boolean().default(true),
   RATE_LIMITER_POINTS: Joi.number().default(1000000),
-  RATE_LIMITER_DURATION: Joi.number().default(10 * 60)
+  RATE_LIMITER_DURATION: Joi.number().default(10 * 60),
+  NFT_SCAN_API_KEY: Joi.string().required(),
+  ETH_SUBGRAPH_ENDPOINT: Joi.string().required(),
+  POLYGON_SUBGRAPH_ENDPOINT: Joi.string().required()
 })
