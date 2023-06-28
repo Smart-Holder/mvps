@@ -20,8 +20,8 @@ export class AppController {
     return { status: 'ok', time: Date.now() }
   }
 
-  @Post('nft/getNFTByOwnerPage')
-  getNftByOwnerPage(@Body() body: GetNftByOwnerPageDto) {
+  @Post('nfts')
+  getNfts(@Body() body: GetNftByOwnerPageDto) {
     return this.app.getAssetsByOwner(body)
   }
 }
