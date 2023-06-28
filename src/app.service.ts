@@ -18,7 +18,7 @@ export class AppService {
 
   async getAssetsByOwner(params: GetNftByOwnerPageDto) {
     try {
-      const { owner, chain, pageSize: limit = 10, curPage: page = 1 } = params
+      const { owner, chain, limit = 10, page = 1 } = params
       let items
 
       if (isDefined(chain)) {

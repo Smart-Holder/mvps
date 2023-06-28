@@ -1,9 +1,8 @@
 import {
-  Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
-  Post,
+  Query,
   UseInterceptors
 } from '@nestjs/common'
 
@@ -20,8 +19,8 @@ export class AppController {
     return { status: 'ok', time: Date.now() }
   }
 
-  @Post('nfts')
-  getNfts(@Body() body: GetNftByOwnerPageDto) {
-    return this.app.getAssetsByOwner(body)
+  @Get('nfts')
+  getNfts(@Query() query: GetNftByOwnerPageDto) {
+    return this.app.getAssetsByOwner(query)
   }
 }
