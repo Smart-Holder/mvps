@@ -1,16 +1,9 @@
-import {
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Query,
-  UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, Query } from '@nestjs/common'
 
 import { AppService } from '@/app.service'
 import { GetNftsDto } from '@/app.dto'
 
 @Controller()
-@UseInterceptors(ClassSerializerInterceptor)
 export class AppController {
   constructor(private readonly app: AppService) {}
 
@@ -20,7 +13,7 @@ export class AppController {
   }
 
   @Get('nfts')
-  getNfts(@Query() query: GetNftsDto) {
+  async getNfts(@Query() query: GetNftsDto) {
     return this.app.getAssetsByOwner(query)
   }
 }

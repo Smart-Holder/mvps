@@ -33,10 +33,7 @@ export class TransformInterceptor implements NestInterceptor {
         }
 
         return {
-          code: 0,
-          errno: 0,
-          data: resultData,
-          st: Date.now()
+          data: resultData
         }
       })
     )

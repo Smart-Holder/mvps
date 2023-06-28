@@ -1,10 +1,16 @@
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { CacheModule } from '@nestjs/cache-manager'
+import {
+  ClassSerializerInterceptor,
+  Module,
+  ValidationPipe
+} from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { Module, ValidationPipe } from '@nestjs/common'
 
 import configs, { validationSchema } from '@/config'
 import { AppController } from '@/app.controller'
 import { AppService } from '@/app.service'
+import { HttpCacheInterceptor } from '@/interceptor/http-cache.interceptor'
 import { HttpExceptionFilter } from '@/filter/http-exception.filter'
 import { LoggerInterceptor } from '@/interceptor/logger.interceptor'
 import { NftscanModule } from '@/nftscan/nftscan.module'
@@ -23,6 +29,10 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
       load: configs,
       isGlobal: true
     }),
+    CacheModule.register({
+      ttl: 1000 * 60 * 2,
+      isGlobal: true
+    }),
     NftscanModule,
     SubgraphModule
   ],
@@ -32,7 +42,9 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
     { provide: APP_PIPE, useClass: ValidationPipe },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
-    { provide: APP_INTERCEPTOR, useClass: LoggerInterceptor }
+    { provide: APP_INTERCEPTOR, useClass: LoggerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: HttpCacheInterceptor }
   ]
 })
 export class AppModule {}
