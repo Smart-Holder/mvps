@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 
 import { AppService } from '@/app.service'
-import { GetNftByOwnerPageDto } from '@/app.dto'
+import { GetNftsDto } from '@/app.dto'
 
 @Controller()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -20,7 +20,7 @@ export class AppController {
   }
 
   @Get('nfts')
-  getNfts(@Query() query: GetNftByOwnerPageDto) {
+  getNfts(@Query() query: GetNftsDto) {
     return this.app.getAssetsByOwner(query)
   }
 }

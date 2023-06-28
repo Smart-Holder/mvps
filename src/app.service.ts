@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { isDefined } from 'class-validator'
 
 import { AssetEntity } from '@/asset.entity'
-import { GetNftByOwnerPageDto } from '@/app.dto'
+import { GetNftsDto } from '@/app.dto'
 import { NftscanService } from '@/nftscan/nftscan.service'
 import { SubgraphService } from '@/subgraph/subgraph.service'
 
@@ -16,9 +16,9 @@ export class AppService {
     private readonly subgraph: SubgraphService
   ) {}
 
-  async getAssetsByOwner(params: GetNftByOwnerPageDto) {
+  async getAssetsByOwner(params: GetNftsDto) {
     try {
-      const { owner, chain, limit = 10, page = 1 } = params
+      const { owner, chain, token, tokenId, limit = 10, page = 1 } = params
       let items
 
       if (isDefined(chain)) {
@@ -47,6 +47,14 @@ export class AppService {
         const polygons = await this.getPolygonAssetsWithSubgraph(owner)
 
         items = items.concat(eths, polygons)
+      }
+
+      if (isDefined(token)) {
+        items = items.filter((item) => item.contract_address === token)
+      }
+
+      if (isDefined(tokenId)) {
+        items = items.filter((item) => item.token_id === tokenId)
       }
 
       items.sort((a, b) => b.mint_timestamp - a.mint_timestamp)
