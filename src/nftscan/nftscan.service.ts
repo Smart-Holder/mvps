@@ -8,6 +8,7 @@ export type EvmAsset = Asset & {
   chain: number
   total: number
   symbol: string
+  ownsTotal: number
   description: string
 }
 
@@ -40,6 +41,7 @@ export class NftscanService {
           ...item.assets.map((asset) => ({
             chain: this.chains['eth'],
             total: item.items_total,
+            ownsTotal: item.owns_total,
             symbol: item.symbol,
             description: item.description,
             ...asset
@@ -58,6 +60,7 @@ export class NftscanService {
           ...item.assets.map((asset) => ({
             chain: this.chains['polygon'],
             total: item.items_total,
+            ownsTotal: item.owns_total,
             symbol: item.symbol,
             description: item.description,
             ...asset
@@ -77,6 +80,7 @@ export class NftscanService {
       return {
         chain: this.chains['eth'],
         total: collection.items_total,
+        ownsTotal: +asset.amount,
         symbol: collection.symbol,
         description: collection.description,
         ...asset
@@ -99,6 +103,7 @@ export class NftscanService {
       return {
         chain: this.chains['polygon'],
         total: collection.items_total,
+        ownsTotal: +asset.amount,
         symbol: collection.symbol,
         description: collection.description,
         ...asset
@@ -128,6 +133,7 @@ export class NftscanService {
         assetList.push({
           chain: this.chains['eth'],
           total: collection.items_total,
+          ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
           ...item
@@ -161,6 +167,7 @@ export class NftscanService {
         assetList.push({
           chain: this.chains['polygon'],
           total: collection.items_total,
+          ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
           ...item
