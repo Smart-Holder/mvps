@@ -30,7 +30,7 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
       isGlobal: true
     }),
     CacheModule.register({
-      ttl: 1000 * 60 * 2,
+      ttl: 1000 * 20,
       isGlobal: true
     }),
     NftscanModule,
