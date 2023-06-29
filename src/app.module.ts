@@ -39,7 +39,10 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_PIPE, useClass: ValidationPipe },
+    {
+      provide: APP_PIPE,
+      useFactory: () => new ValidationPipe({ transform: true })
+    },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_INTERCEPTOR, useClass: LoggerInterceptor },

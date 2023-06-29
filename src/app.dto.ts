@@ -3,13 +3,13 @@ import { Transform } from 'class-transformer'
 
 export class PaginationDto {
   @IsOptional()
-  @IsPositive()
   @Transform(({ value }) => (value ? +value : 1))
+  @IsPositive()
   page?: number
 
   @IsOptional()
-  @IsPositive()
   @Transform(({ value }) => (value ? +value : 10))
+  @IsPositive()
   limit?: number
 }
 export class GetNftsDto extends PaginationDto {
@@ -26,7 +26,7 @@ export class GetNftsDto extends PaginationDto {
   tokenId?: string
 
   @IsOptional()
-  @IsPositive()
   @Transform(({ value }) => +value)
+  @IsPositive()
   chain?: number
 }
