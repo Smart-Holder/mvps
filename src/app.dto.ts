@@ -12,7 +12,7 @@ export class PaginationDto {
   @IsPositive()
   limit?: number
 }
-export class GetNftsDto extends PaginationDto {
+export class GetNftsByOwnerDto extends PaginationDto {
   @IsNotEmpty()
   @IsString()
   owner: string
@@ -20,6 +20,21 @@ export class GetNftsDto extends PaginationDto {
   @IsOptional()
   @IsString()
   token?: string
+
+  @IsOptional()
+  @IsString()
+  tokenId?: string
+
+  @IsOptional()
+  @Transform(({ value }) => +value)
+  @IsPositive()
+  chain?: number
+}
+
+export class GetNftsByTokenDto extends PaginationDto {
+  @IsNotEmpty()
+  @IsString()
+  token: string
 
   @IsOptional()
   @IsString()

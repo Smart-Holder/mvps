@@ -176,4 +176,64 @@ export class NftscanService {
       return assetList
     })
   }
+
+  getEthAssetsFilters(list: { contractAddress: string }[]) {
+    if (list.length === 0) return Promise.resolve([])
+    return Promise.all([
+      this.eth.asset.queryAssetsByFilters({
+        limit: 100,
+        contract_address_list: list.map((it) => it.contractAddress)
+      }),
+      this.eth.collection.queryCollectionsByFilters({
+        contract_address_list: list.map((it) => it.contractAddress)
+      })
+    ]).then((results) => {
+      const [assets, collections] = results
+      const assetList: EvmAsset[] = []
+      assets.content.forEach((item) => {
+        const collection = collections.find(
+          (it) => it.contract_address === item.contract_address
+        )
+        assetList.push({
+          chain: this.chains['eth'],
+          total: collection.items_total,
+          ownsTotal: +item.amount,
+          symbol: collection.symbol,
+          description: collection.description,
+          ...item
+        })
+      })
+      return assetList
+    })
+  }
+
+  getPolygonAssetsFilters(list: { contractAddress: string }[]) {
+    if (list.length === 0) return Promise.resolve([])
+    return Promise.all([
+      this.polygon.asset.queryAssetsByFilters({
+        limit: 100,
+        contract_address_list: list.map((it) => it.contractAddress)
+      }),
+      this.polygon.collection.queryCollectionsByFilters({
+        contract_address_list: list.map((it) => it.contractAddress)
+      })
+    ]).then((results) => {
+      const [assets, collections] = results
+      const assetList: EvmAsset[] = []
+      assets.content.forEach((item) => {
+        const collection = collections.find(
+          (it) => it.contract_address === item.contract_address
+        )
+        assetList.push({
+          chain: this.chains['polygon'],
+          total: collection.items_total,
+          ownsTotal: +item.amount,
+          symbol: collection.symbol,
+          description: collection.description,
+          ...item
+        })
+      })
+      return assetList
+    })
+  }
 }

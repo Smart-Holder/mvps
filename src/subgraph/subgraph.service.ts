@@ -16,12 +16,12 @@ export class SubgraphService {
   private logger = new Logger(SubgraphService.name, { timestamp: true })
 
   private readonly getAssetsDocument = gql`
-    query getAssets($first: Int, $owner: String!) {
+    query getAssets($first: Int, $owner: String, $token: String) {
       assets(
         first: $first
         orderBy: lastUpdateBlockNumber
         orderDirection: desc
-        where: { to: $owner }
+        where: { to: $owner, token: $token }
       ) {
         type
         token
@@ -53,6 +53,18 @@ export class SubgraphService {
       this.endpoints[chain],
       this.getAssetsDocument,
       { owner, first }
+    )
+  }
+
+  getAssetsByToken(
+    chain: keyof typeof this.endpoints,
+    token: string,
+    first = 100
+  ) {
+    return request<{ assets: SubgraphAsset[] }>(
+      this.endpoints[chain],
+      this.getAssetsDocument,
+      { token, first }
     )
   }
 }
