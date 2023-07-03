@@ -95,7 +95,9 @@ export class AppService {
             items = items.concat(eths)
             break
           case this.nftScan.chains.polygon:
-            items = await this.nftScan.getPolygonAssetsByAccountAddress(token)
+            items = await this.nftScan.getPolygonAssetsFilters([
+              { contractAddress: token }
+            ])
             const polygons = await this.getPolygonAssetsByTokenWithSubgraph(
               token
             )
@@ -104,8 +106,8 @@ export class AppService {
         }
       } else {
         items = await Promise.all([
-          this.nftScan.getEthAssetsByAccountAddress(token),
-          this.nftScan.getPolygonAssetsByAccountAddress(token)
+          this.nftScan.getEthAssetsFilters([{ contractAddress: token }]),
+          this.nftScan.getPolygonAssetsFilters([{ contractAddress: token }])
         ]).then((items) => items.flat())
 
         const eths = await this.getEthAssetsByTokenWithSubgraph(token)
