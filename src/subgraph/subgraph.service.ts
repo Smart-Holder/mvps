@@ -21,7 +21,7 @@ export class SubgraphService {
         first: $first
         orderBy: lastUpdateBlockNumber
         orderDirection: desc
-        where: { to: $owner, token: $token }
+        where: { or: [{ to: $owner }, { token: $token }] }
       ) {
         type
         token
