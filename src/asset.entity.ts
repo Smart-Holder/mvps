@@ -25,6 +25,7 @@ export function formatHex(hex_str: string | number | bigint, btyes = 32) {
 export class AssetEntity {
   token: string
   tokenId: string
+  chain: number
   count: number
   uri: string
   name?: string
@@ -42,6 +43,7 @@ export class AssetEntity {
 
   constructor(source: EvmAsset) {
     this.token = source.contract_address
+    this.chain = source.chain
     this.tokenId = formatHex(source.token_id)
     this.count = source.ownsTotal
     this.uri = source.token_uri
