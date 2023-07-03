@@ -114,10 +114,6 @@ export class AppService {
         items = items.concat(eths, polygons)
       }
 
-      if (isDefined(token)) {
-        items = items.filter((item) => item.contract_address === token)
-      }
-
       if (isDefined(tokenId)) {
         items = items.filter((item) => item.token_id === tokenId)
       }
