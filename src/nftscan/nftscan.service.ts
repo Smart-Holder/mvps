@@ -41,7 +41,7 @@ export class NftscanService {
           ...item.assets.map((asset) => ({
             chain: this.chains['eth'],
             total: item.items_total,
-            ownsTotal: item.owns_total,
+            ownsTotal: +asset.amount,
             symbol: item.symbol,
             description: item.description,
             ...asset
@@ -60,7 +60,7 @@ export class NftscanService {
           ...item.assets.map((asset) => ({
             chain: this.chains['polygon'],
             total: item.items_total,
-            ownsTotal: item.owns_total,
+            ownsTotal: +asset.amount,
             symbol: item.symbol,
             description: item.description,
             ...asset
