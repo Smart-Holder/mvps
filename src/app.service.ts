@@ -144,7 +144,15 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getEthAssetsInBatches(batchQuery)
+    return this.nftScan.getEthAssetsInBatches(batchQuery).then((values) =>
+      values
+        ? values.map((asset, i) => ({
+            ...asset,
+            owner: assets[i].contractAddress,
+            ownerBase: owner
+          }))
+        : []
+    )
   }
 
   private async getPolygonAssetsByOwnerWithSubgraph(owner: string) {
@@ -156,7 +164,15 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getPolygonAssetsInBatches(batchQuery)
+    return this.nftScan.getPolygonAssetsInBatches(batchQuery).then((values) =>
+      values
+        ? values.map((asset, i) => ({
+            ...asset,
+            owner: assets[i].contractAddress,
+            ownerBase: owner
+          }))
+        : []
+    )
   }
 
   private async getEthAssetsByTokenWithSubgraph(token: string) {
@@ -165,7 +181,15 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getEthAssetsInBatches(batchQuery)
+    return this.nftScan.getEthAssetsInBatches(batchQuery).then((values) =>
+      values
+        ? values.map((asset, i) => ({
+            ...asset,
+            owner: assets[i].contractAddress,
+            ownerBase: assets[i].to
+          }))
+        : []
+    )
   }
 
   private async getPolygonAssetsByTokenWithSubgraph(token: string) {
@@ -177,6 +201,14 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getPolygonAssetsInBatches(batchQuery)
+    return this.nftScan.getPolygonAssetsInBatches(batchQuery).then((values) =>
+      values
+        ? values.map((asset, i) => ({
+            ...asset,
+            owner: assets[i].contractAddress,
+            ownerBase: assets[i].to
+          }))
+        : []
+    )
   }
 }

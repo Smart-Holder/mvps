@@ -45,3 +45,13 @@ export class GetNftsByTokenDto extends PaginationDto {
   @IsPositive()
   chain?: number
 }
+
+export class GetTransactionsDto {
+  @IsNotEmpty()
+  @IsString()
+  token: string
+
+  @IsNotEmpty()
+  @IsString()
+  tokenId: string
+}

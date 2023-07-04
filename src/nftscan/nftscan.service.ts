@@ -10,6 +10,8 @@ export type EvmAsset = Asset & {
   symbol: string
   ownsTotal: number
   description: string
+  owner?: string
+  ownerBase?: string
 }
 
 @Injectable()
@@ -44,6 +46,8 @@ export class NftscanService {
             ownsTotal: +asset.amount,
             symbol: item.symbol,
             description: item.description,
+            ownerBase: '',
+            owner,
             ...asset
           }))
         )
@@ -63,6 +67,8 @@ export class NftscanService {
             ownsTotal: +asset.amount,
             symbol: item.symbol,
             description: item.description,
+            ownerBase: '',
+            owner,
             ...asset
           }))
         )
@@ -83,6 +89,8 @@ export class NftscanService {
         ownsTotal: +asset.amount,
         symbol: collection.symbol,
         description: collection.description,
+        ownerBase: '',
+        owner: asset.owner,
         ...asset
       } as EvmAsset
     })
@@ -106,12 +114,16 @@ export class NftscanService {
         ownsTotal: +asset.amount,
         symbol: collection.symbol,
         description: collection.description,
+        ownerBase: '',
+        owner: asset.owner,
         ...asset
       } as EvmAsset
     })
   }
 
-  getEthAssetsInBatches(list: { contractAddress: string; tokenId: string }[]) {
+  getEthAssetsInBatches(
+    list: { contractAddress: string; tokenId: string }[]
+  ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     return Promise.all([
       this.eth.asset.queryAssetsInBatches(
@@ -136,6 +148,8 @@ export class NftscanService {
           ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
+          ownerBase: '',
+          owner: item.owner,
           ...item
         })
       })
@@ -145,7 +159,7 @@ export class NftscanService {
 
   getPolygonAssetsInBatches(
     list: { contractAddress: string; tokenId: string }[]
-  ) {
+  ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     return Promise.all([
       this.polygon.asset.queryAssetsInBatches(
@@ -170,6 +184,8 @@ export class NftscanService {
           ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
+          ownerBase: '',
+          owner: item.owner,
           ...item
         })
       })
@@ -177,7 +193,9 @@ export class NftscanService {
     })
   }
 
-  getEthAssetsFilters(list: { contractAddress: string }[]) {
+  getEthAssetsFilters(
+    list: { contractAddress: string }[]
+  ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     return Promise.all([
       this.eth.asset.queryAssetsByFilters({
@@ -200,6 +218,8 @@ export class NftscanService {
           ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
+          ownerBase: '',
+          owner: item.owner,
           ...item
         })
       })
@@ -207,7 +227,9 @@ export class NftscanService {
     })
   }
 
-  getPolygonAssetsFilters(list: { contractAddress: string }[]) {
+  getPolygonAssetsFilters(
+    list: { contractAddress: string }[]
+  ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     return Promise.all([
       this.polygon.asset.queryAssetsByFilters({
@@ -230,10 +252,23 @@ export class NftscanService {
           ownsTotal: +item.amount,
           symbol: collection.symbol,
           description: collection.description,
+          ownerBase: '',
+          owner: item.owner,
           ...item
         })
       })
       return assetList
     })
+  }
+
+  getPolygonTokenTransactions(token: string, tokenId: string) {
+    return this.polygon.transaction
+      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
+      .then((res) => {
+        return res.content.map((item) => ({
+          ...item,
+          chain: this.chains['polygon']
+        }))
+      })
   }
 }

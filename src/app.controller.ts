@@ -1,7 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common'
 
 import { AppService } from '@/app.service'
-import { GetNftsByOwnerDto, GetNftsByTokenDto } from '@/app.dto'
+import {
+  GetNftsByOwnerDto,
+  GetNftsByTokenDto,
+  GetTransactionsDto
+} from '@/app.dto'
 
 @Controller()
 export class AppController {
@@ -20,5 +24,10 @@ export class AppController {
   @Get('token/nfts')
   async getNftsByToken(@Query() query: GetNftsByTokenDto) {
     return this.app.getAssetsByToken(query)
+  }
+
+  @Get('token/transactions')
+  async getTransactions(@Query() query: GetTransactionsDto) {
+    return { status: 'TODO', time: Date.now(), query }
   }
 }

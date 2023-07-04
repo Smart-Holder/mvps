@@ -9,6 +9,7 @@ interface SubgraphAsset {
   tokenId: string
   from: string
   to: string
+  contractAddress: string
 }
 
 @Injectable()
@@ -28,6 +29,7 @@ export class SubgraphService {
         tokenId
         from
         to
+        contractAddress
       }
     }
   `
