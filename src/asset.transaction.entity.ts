@@ -23,8 +23,8 @@ export class AssetTransactionEntity {
     this.tokenId = formatHex(source.token_id)
     this.txHash = source.hash
     this.blockNumber = source.block_number
-    this.fromAddres = source.from
-    this.toAddress = source.to
+    this.fromAddres = source.send
+    this.toAddress = source.receive
     this.count = +source.amount
     this.value = BigInt(source.trade_value).toString()
     this.price = source.trade_price
