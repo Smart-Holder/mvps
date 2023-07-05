@@ -269,7 +269,7 @@ export class NftscanService {
     token: string,
     tokenId: string
   ): Promise<EvmTransaction[]> {
-    return this.polygon.transaction
+    return this.eth.transaction
       .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
       .then((res) =>
         res
