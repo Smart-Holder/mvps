@@ -52,9 +52,9 @@ export class AssetEntity {
     this.name = source.name || source.contract_name
     this.type = AssetTypeEnum[source.erc_type]
     this.author = source.minter
-    this.media = source.nftscan_uri || ''
+    this.media = source.nftscan_uri || source.content_uri || ''
     this.mediaOrigin = source.content_uri || ''
-    this.image = source.nftscan_uri || ''
+    this.image = source.nftscan_uri || source.image_uri || ''
     this.imageOrigin = source.image_uri || ''
     this.thumbnail = source.small_nftscan_uri || ''
     this.externalLink = source.external_link || ''
