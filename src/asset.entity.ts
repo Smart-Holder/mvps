@@ -39,6 +39,8 @@ export class AssetEntity {
   externalLink?: string
   symbol?: string
   info?: string
+  owner: string
+  ownerBase?: string
   metadataJson: Record<string, any>
 
   constructor(source: EvmAsset) {
@@ -59,5 +61,7 @@ export class AssetEntity {
     this.symbol = source.symbol
     this.info = source.description
     this.metadataJson = JSON.parse(source.metadata_json)
+    this.owner = source.owner
+    this.ownerBase = source.ownerBase
   }
 }
