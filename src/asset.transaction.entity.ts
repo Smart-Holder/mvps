@@ -26,7 +26,7 @@ export class AssetTransactionEntity {
     this.fromAddres = source.from
     this.toAddress = source.to
     this.count = +source.amount
-    this.value = BigInt(source.amount).toString()
+    this.value = source.amount
     this.price = source.trade_price
     this.symbol = source.trade_symbol
     this.symbolAddress = source.trade_symbol_address || ''
