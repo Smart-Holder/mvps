@@ -1,4 +1,4 @@
-import { Asset } from 'nftscan-api/dist/src/types/evm'
+import { Asset, Transaction } from 'nftscan-api/dist/src/types/evm'
 import { ConfigService } from '@nestjs/config'
 import { EvmChain, NftscanEvm } from 'nftscan-api'
 import { Injectable, Logger } from '@nestjs/common'
@@ -12,6 +12,10 @@ export type EvmAsset = Asset & {
   description: string
   owner?: string
   ownerBase?: string
+}
+
+export type EvmTransaction = Transaction & {
+  chain: number
 }
 
 @Injectable()
@@ -261,14 +265,39 @@ export class NftscanService {
     })
   }
 
-  getPolygonTokenTransactions(token: string, tokenId: string) {
+  getEthTokenTransactions(
+    token: string,
+    tokenId: string
+  ): Promise<EvmTransaction[]> {
     return this.polygon.transaction
       .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
-      .then((res) => {
-        return res.content.map((item) => ({
-          ...item,
-          chain: this.chains['polygon']
-        }))
-      })
+      .then((res) =>
+        res
+          ? [
+              ...res.content.map((item) => ({
+                ...item,
+                chain: this.chains['eth']
+              }))
+            ]
+          : []
+      )
+  }
+
+  getPolygonTokenTransactions(
+    token: string,
+    tokenId: string
+  ): Promise<EvmTransaction[]> {
+    return this.polygon.transaction
+      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
+      .then((res) =>
+        res
+          ? [
+              ...res.content.map((item) => ({
+                ...item,
+                chain: this.chains['polygon']
+              }))
+            ]
+          : []
+      )
   }
 }

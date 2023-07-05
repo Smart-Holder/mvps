@@ -28,6 +28,6 @@ export class AppController {
 
   @Get('token/transactions')
   async getTransactions(@Query() query: GetTransactionsDto) {
-    return { status: 'TODO', time: Date.now(), query }
+    return this.app.getTransactions(query)
   }
 }

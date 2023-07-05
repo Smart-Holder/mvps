@@ -54,4 +54,9 @@ export class GetTransactionsDto {
   @IsNotEmpty()
   @IsString()
   tokenId: string
+
+  @IsOptional()
+  @Transform(({ value }) => +value)
+  @IsPositive()
+  chain?: number
 }

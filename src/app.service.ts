@@ -3,9 +3,15 @@ import { Injectable, Logger } from '@nestjs/common'
 import { isDefined } from 'class-validator'
 
 import { AssetEntity } from '@/asset.entity'
-import { GetNftsByOwnerDto, GetNftsByTokenDto } from '@/app.dto'
+import {
+  GetNftsByOwnerDto,
+  GetNftsByTokenDto,
+  GetTransactionsDto
+} from '@/app.dto'
 import { NftscanService } from '@/nftscan/nftscan.service'
 import { SubgraphService } from '@/subgraph/subgraph.service'
+
+import { AssetTransactionEntity } from './asset.transaction.entity'
 
 @Injectable()
 export class AppService {
@@ -135,6 +141,42 @@ export class AppService {
     } catch (error) {
       this.logger.error(JSON.stringify(error))
       return { total: 0, totalPage: 0, items: [] }
+    }
+  }
+
+  async getTransactions(params: GetTransactionsDto) {
+    try {
+      const { chain, token, tokenId } = params
+      let items
+
+      if (isDefined(chain)) {
+        if (!this.nftScan.isSupportedChainId(chain)) {
+          return []
+        }
+        switch (chain) {
+          case this.nftScan.chains.eth:
+            items = await this.nftScan.getEthTokenTransactions(token, tokenId)
+            break
+          case this.nftScan.chains.polygon:
+            items = await this.nftScan.getPolygonTokenTransactions(
+              token,
+              tokenId
+            )
+            break
+        }
+      } else {
+        items = await Promise.all([
+          this.nftScan.getEthTokenTransactions(token, tokenId),
+          this.nftScan.getPolygonTokenTransactions(token, tokenId)
+        ]).then((items) => items.flat())
+      }
+
+      items.sort((a, b) => b.timestamp - a.timestamp)
+
+      return items.map((item) => new AssetTransactionEntity(item))
+    } catch (error) {
+      this.logger.error(JSON.stringify(error))
+      return []
     }
   }
 
