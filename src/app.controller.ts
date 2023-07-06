@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import { Controller, Get, Post, Query } from '@nestjs/common'
 
 import { AppService } from '@/app.service'
 import {
@@ -31,7 +31,7 @@ export class AppController {
     return this.app.getTransactions(query)
   }
 
-  @Get('notify')
+  @Post('notify')
   notify() {
     return { status: 'ok', time: Date.now() }
   }
