@@ -5,7 +5,7 @@ import { EvmChain, NftscanEvm } from 'nftscan-api'
 import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { arrayContains } from 'class-validator'
-import { map } from 'rxjs'
+import { lastValueFrom, map } from 'rxjs'
 
 export type EvmAsset = Asset & {
   chain: number
@@ -21,7 +21,7 @@ export type EvmTransaction = Transaction & {
   chain: number
 }
 
-export type EvmNotify = {
+export type Notify = {
   id: string
   app_name: string
   chain: number
@@ -30,6 +30,25 @@ export type EvmNotify = {
   notify_params: string[]
   notify_url: string
   create_time: number
+}
+
+export type NotifysResponse = {
+  code: number
+  data: {
+    next: string
+    total: number
+    content: Notify[]
+  }
+  msg: string | null
+}
+
+export type UpdateNotifyResponse = {
+  code: number
+  data: {
+    reason: string
+    status: string
+  }
+  msg: string | null
 }
 
 @Injectable()
@@ -337,22 +356,106 @@ export class NftscanService {
 
   getNotifys(
     params: Partial<
-      Pick<EvmNotify, 'app_name' | 'chain' | 'notify_type'> & {
-        cursor: number
+      Pick<Notify, 'notify_type'> & {
+        chain: string
+        cursor: string
         limit: number
       }
     >
   ) {
+    const appName = this.config.get<string>('app.name')
     const headers = AxiosHeaders.from({ 'X-API-KEY': this.apiKey })
-    this.http.post(this.apiBaseUrl, params, { headers }).pipe(
-      map((res) => {
-        const { data: responseData, code } = res.data
-        if (code !== 200) {
-          this.httpLogger.error(JSON.stringify(res.data))
-          return {}
-        }
-        return responseData
+    const data = { ...params, active: true, app_name: appName }
+    const req = this.http
+      .post<NotifysResponse>(`${this.apiBaseUrl}/v2/notify/filters`, data, {
+        headers
       })
-    )
+      .pipe(
+        map((res) => {
+          this.httpLogger.log(`${res.status} [POST] ${this.apiBaseUrl}`, data)
+          const { data: responseData, code } = res.data
+          if (code !== 200) {
+            this.httpLogger.error(responseData)
+          }
+          return responseData
+        })
+      )
+    return lastValueFrom(req)
+  }
+
+  loadAllNotifys(
+    params: Partial<Pick<Notify, 'chain' | 'notify_type'>>,
+    limit = 50
+  ) {
+    const chain = Object.entries(this.chains).find(
+      (v) => v[1] === params.chain
+    )?.[0]
+    delete params.chain
+    const fetch = async (cursor?: string) => {
+      const items: Notify[] = []
+      const { total, next, content } = await this.getNotifys({
+        ...params,
+        chain,
+        limit,
+        cursor
+      })
+      if (total > 0) {
+        if (next) {
+          const itr = await fetch(next)
+          items.push(...content, ...itr)
+        } else {
+          items.push(...content)
+        }
+      }
+      return items
+    }
+    return fetch()
+  }
+
+  updateNotify(
+    params: Pick<Notify, 'chain' | 'notify_params' | 'notify_type'> &
+      Partial<Pick<Notify, 'id'>>
+  ) {
+    const appName = this.config.get<string>('app.name')
+    const notifyUrl = this.config.get<string>('nftScan.notifyUrl')
+    const headers = AxiosHeaders.from({ 'X-API-KEY': this.apiKey })
+    const chain = Object.entries(this.chains).find(
+      (v) => v[1] === params.chain
+    )?.[0]
+    delete params.chain
+    const data = {
+      ...params,
+      active: true,
+      app_name: appName,
+      notify_url: notifyUrl,
+      chain
+    }
+    const isCreate = !data.id
+    const req = this.http
+      .post<UpdateNotifyResponse>(
+        `${this.apiBaseUrl}/v2/notify/${isCreate ? 'create' : 'update'}`,
+        data,
+        { headers }
+      )
+      .pipe(
+        map((res) => {
+          const owner = params.notify_params[0]
+          this.logger.log(
+            `${isCreate ? 'Create' : 'update'} [${
+              params.notify_type
+            }] Chain: ${chain.toUpperCase()} Notify: ${
+              isCreate ? owner : data.id
+            }`
+          )
+          this.httpLogger.log(`${res.status} [POST] ${this.apiBaseUrl}`, data)
+          const { code } = res.data
+          if (code !== 200) {
+            this.httpLogger.error(res.data)
+            return false
+          }
+          return true
+        })
+      )
+    return lastValueFrom(req)
   }
 }

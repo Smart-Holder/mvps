@@ -70,6 +70,20 @@ export class AppService {
       const skip = (page - 1) * limit
       const total = items.length
       const totalPage = Math.ceil(total / limit)
+
+      if (total > 0) {
+        const ethItems = items.filter((item) => item.chain === 1)
+        const polygonItems = items.filter((item) => item.chain === 137)
+
+        if (ethItems.length > 0) {
+          this.ownerNotify(owner, 1)
+        }
+
+        if (polygonItems.length > 0) {
+          this.ownerNotify(owner, 137)
+        }
+      }
+
       return {
         total,
         totalPage,
@@ -252,5 +266,33 @@ export class AppService {
           }))
         : []
     )
+  }
+
+  async ownerNotify(owner: string, chain: number) {
+    try {
+      const type = 'ADDRESS_ACTIVITY'
+      const allNotifiys = await this.nftScan.loadAllNotifys({
+        chain,
+        notify_type: type
+      })
+      const current = allNotifiys.find(
+        (notify) => notify.notify_params.length < 10000
+      )
+      const isExist = isDefined(current)
+        ? current.notify_params.includes(owner.toLowerCase())
+        : false
+      if (!isExist) {
+        await this.nftScan.updateNotify({
+          id: isDefined(current) ? current.id : undefined,
+          chain,
+          notify_type: type,
+          notify_params: isDefined(current)
+            ? [owner, ...current.notify_params]
+            : [owner]
+        })
+      }
+    } catch (error) {
+      this.logger.error(error)
+    }
   }
 }

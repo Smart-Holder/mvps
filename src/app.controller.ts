@@ -30,4 +30,9 @@ export class AppController {
   async getTransactions(@Query() query: GetTransactionsDto) {
     return this.app.getTransactions(query)
   }
+
+  @Get('notify')
+  notify() {
+    return { status: 'ok', time: Date.now() }
+  }
 }
