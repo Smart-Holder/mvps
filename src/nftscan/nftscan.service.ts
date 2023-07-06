@@ -21,6 +21,8 @@ export type EvmTransaction = Transaction & {
   chain: number
 }
 
+export type { Transaction }
+
 export type Notify = {
   id: string
   app_name: string

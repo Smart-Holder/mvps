@@ -1,4 +1,5 @@
 import { ErcType } from 'nftscan-api'
+import { Transaction } from 'nftscan-api/dist/src/types/evm'
 
 export const AssetTypeEnum: Record<string, number> = {
   [ErcType.ERC_721]: 1,
@@ -19,3 +20,5 @@ export function formatHex(hex_str: string | number | bigint, btyes = 32) {
     return '0x' + s
   }
 }
+
+export type { Transaction }

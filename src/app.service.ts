@@ -6,7 +6,8 @@ import { AssetEntity } from '@/asset.entity'
 import {
   GetNftsByOwnerDto,
   GetNftsByTokenDto,
-  GetTransactionsDto
+  GetTransactionsDto,
+  NotifyDto
 } from '@/app.dto'
 import { NftscanService } from '@/nftscan/nftscan.service'
 import { SubgraphService } from '@/subgraph/subgraph.service'
@@ -296,7 +297,8 @@ export class AppService {
     }
   }
 
-  sendNotify(owner: string) {
+  sendNotify(body: NotifyDto) {
     // TODO: send notify to owner
+    const { data, network: chain } = body
   }
 }

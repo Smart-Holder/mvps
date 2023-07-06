@@ -1,6 +1,8 @@
 import { IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator'
 import { Transform } from 'class-transformer'
 
+import { Transaction } from './utils'
+
 export class PaginationDto {
   @IsOptional()
   @Transform(({ value }) => (value ? +value : 1))
@@ -15,14 +17,17 @@ export class PaginationDto {
 export class GetNftsByOwnerDto extends PaginationDto {
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => value.toLowerCase())
   owner: string
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.toLowerCase())
   token?: string
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.toLowerCase())
   tokenId?: string
 
   @IsOptional()
@@ -34,10 +39,12 @@ export class GetNftsByOwnerDto extends PaginationDto {
 export class GetNftsByTokenDto extends PaginationDto {
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => value.toLowerCase())
   token: string
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.toLowerCase())
   tokenId?: string
 
   @IsOptional()
@@ -59,4 +66,13 @@ export class GetTransactionsDto {
   @Transform(({ value }) => +value)
   @IsPositive()
   chain?: number
+}
+
+export class NotifyDto {
+  @IsNotEmpty()
+  data: Transaction
+  @IsNotEmpty()
+  network: string
+  @IsNotEmpty()
+  type: 'ADDRESS_ACTIVITY' | 'NFT_ACTIVITY'
 }

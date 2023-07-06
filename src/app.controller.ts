@@ -4,7 +4,8 @@ import { AppService } from '@/app.service'
 import {
   GetNftsByOwnerDto,
   GetNftsByTokenDto,
-  GetTransactionsDto
+  GetTransactionsDto,
+  NotifyDto
 } from '@/app.dto'
 
 @Controller()
@@ -32,9 +33,8 @@ export class AppController {
   }
 
   @Post('notify')
-  notify(@Body() body: any) {
-    console.log(body)
-    // this.app.sendNotify()
+  async notify(@Body() body: NotifyDto) {
+    await this.app.sendNotify(body)
     return { status: 'ok', time: Date.now() }
   }
 }
