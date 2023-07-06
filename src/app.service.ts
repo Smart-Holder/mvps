@@ -295,4 +295,8 @@ export class AppService {
       this.logger.error(error)
     }
   }
+
+  sendNotify(owner: string) {
+    // TODO: send notify to owner
+  }
 }

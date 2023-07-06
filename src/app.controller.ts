@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 
 import { AppService } from '@/app.service'
 import {
@@ -32,7 +32,9 @@ export class AppController {
   }
 
   @Post('notify')
-  notify() {
+  notify(@Body() body: any) {
+    console.log(body)
+    // this.app.sendNotify()
     return { status: 'ok', time: Date.now() }
   }
 }
