@@ -1,8 +1,11 @@
 import { Asset, Transaction } from 'nftscan-api/dist/src/types/evm'
+import { AxiosHeaders } from 'axios'
 import { ConfigService } from '@nestjs/config'
 import { EvmChain, NftscanEvm } from 'nftscan-api'
+import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { arrayContains } from 'class-validator'
+import { map } from 'rxjs'
 
 export type EvmAsset = Asset & {
   chain: number
@@ -18,9 +21,23 @@ export type EvmTransaction = Transaction & {
   chain: number
 }
 
+export type EvmNotify = {
+  id: string
+  app_name: string
+  chain: number
+  notify_type: 'ADDRESS_ACTIVITY' | 'NFT_ACTIVITY'
+  active: boolean
+  notify_params: string[]
+  notify_url: string
+  create_time: number
+}
+
 @Injectable()
 export class NftscanService {
   private logger = new Logger(NftscanService.name, { timestamp: true })
+  private readonly httpLogger = new Logger(HttpService.name, {
+    timestamp: true
+  })
 
   readonly chains = {
     [EvmChain.ETH]: 1,
@@ -28,11 +45,20 @@ export class NftscanService {
   };
   readonly [EvmChain.ETH]: NftscanEvm;
   readonly [EvmChain.POLYGON]: NftscanEvm
+  readonly apiBaseUrl: string
+  readonly apiKey: string
 
-  constructor(private readonly config: ConfigService) {
-    const apiKey = this.config.get<string>('nftScan.apiKey')
-    this.eth = new NftscanEvm({ apiKey, chain: EvmChain.ETH })
-    this.polygon = new NftscanEvm({ apiKey, chain: EvmChain.POLYGON })
+  constructor(
+    private readonly config: ConfigService,
+    private readonly http: HttpService
+  ) {
+    this.apiBaseUrl = this.config.get<string>('nftScan.apiBaseUrl')
+    this.apiKey = this.config.get<string>('nftScan.apiKey')
+    this.eth = new NftscanEvm({ apiKey: this.apiKey, chain: EvmChain.ETH })
+    this.polygon = new NftscanEvm({
+      apiKey: this.apiKey,
+      chain: EvmChain.POLYGON
+    })
   }
 
   isSupportedChainId(chainId: number) {
@@ -129,6 +155,9 @@ export class NftscanService {
     list: { contractAddress: string; tokenId: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
+    const contractAddressList = [
+      ...new Set(list.map((it) => it.contractAddress))
+    ]
     return Promise.all([
       this.eth.asset.queryAssetsInBatches(
         list.map((it) => ({
@@ -137,7 +166,7 @@ export class NftscanService {
         }))
       ),
       this.eth.collection.queryCollectionsByFilters({
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       })
     ]).then((results) => {
       const [assets, collections] = results
@@ -165,6 +194,9 @@ export class NftscanService {
     list: { contractAddress: string; tokenId: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
+    const contractAddressList = [
+      ...new Set(list.map((it) => it.contractAddress))
+    ]
     return Promise.all([
       this.polygon.asset.queryAssetsInBatches(
         list.map((it) => ({
@@ -173,7 +205,7 @@ export class NftscanService {
         }))
       ),
       this.polygon.collection.queryCollectionsByFilters({
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       })
     ]).then((results) => {
       const [assets, collections] = results
@@ -201,13 +233,14 @@ export class NftscanService {
     list: { contractAddress: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
+    const contractAddressList = list.map((it) => it.contractAddress)
     return Promise.all([
       this.eth.asset.queryAssetsByFilters({
         limit: 100,
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       }),
       this.eth.collection.queryCollectionsByFilters({
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       })
     ]).then((results) => {
       const [assets, collections] = results
@@ -235,13 +268,14 @@ export class NftscanService {
     list: { contractAddress: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
+    const contractAddressList = list.map((it) => it.contractAddress)
     return Promise.all([
       this.polygon.asset.queryAssetsByFilters({
         limit: 100,
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       }),
       this.polygon.collection.queryCollectionsByFilters({
-        contract_address_list: list.map((it) => it.contractAddress)
+        contract_address_list: contractAddressList
       })
     ]).then((results) => {
       const [assets, collections] = results
@@ -299,5 +333,26 @@ export class NftscanService {
             ]
           : []
       )
+  }
+
+  getNotifys(
+    params: Partial<
+      Pick<EvmNotify, 'app_name' | 'chain' | 'notify_type'> & {
+        cursor: number
+        limit: number
+      }
+    >
+  ) {
+    const headers = AxiosHeaders.from({ 'X-API-KEY': this.apiKey })
+    this.http.post(this.apiBaseUrl, params, { headers }).pipe(
+      map((res) => {
+        const { data: responseData, code } = res.data
+        if (code !== 200) {
+          this.httpLogger.error(JSON.stringify(res.data))
+          return {}
+        }
+        return responseData
+      })
+    )
   }
 }
