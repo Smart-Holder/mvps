@@ -120,11 +120,13 @@ export class SubgraphService {
     blockNumber?: string
   ) {
     const variables: {
-      contractAddress: string
-      lastUpdateBlockNumber?: string
-    } = { contractAddress }
+      where: {
+        contractAddress: string
+        lastUpdateBlockNumber?: string
+      }
+    } = { where: { contractAddress } }
     if (isDefined(blockNumber)) {
-      variables.lastUpdateBlockNumber = blockNumber
+      variables.where.lastUpdateBlockNumber = blockNumber
     }
     return this.fillterAssets(
       request<{ assets: SubgraphAsset[] }>(

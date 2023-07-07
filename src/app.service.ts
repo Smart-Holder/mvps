@@ -391,6 +391,7 @@ export class AppService {
     devices.forEach(async (addr) => {
       try {
         const uri = `${notifyServerUrl}/nft/sendNFTMessage?address=${addr}`
+        this.logger.log(`Send Notify to device: ${addr}`, uri)
         const res = await lastValueFrom(this.http.post(uri))
         this.httpLogger.log(`${res.status} [POST] ${uri}`)
       } catch (error) {
@@ -420,7 +421,7 @@ export class AppService {
         } catch (error) {
           this.logger.error(error)
         }
-      }, 1000 * 10)
+      }, 1000 * 5)
       this.scheduler.addInterval(jobName, interval)
     })
   }
