@@ -354,12 +354,21 @@ export class AppService {
         tokenId: data.contract_token_id
       })
 
+      const isWaitting = this.scheduler.getInterval(
+        `wait_for_${chain}_${data.hash}`
+      )
+
+      if (isDefined(isWaitting)) return
+
       await this.waitForBlockNumber(chain, blockNumber, data.hash)
 
       const [{ assets: sends }, { assets: receives }] = await Promise.all([
         this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
         this.subgraph.getOneAssetsByContractAddress(chain, receive, blockNumber)
       ])
+
+      this.logger.log('Query Sends', sends)
+      this.logger.log('Query Receives', receives)
 
       if (sends.length > 0) {
         devices.push(sends[0].to)
@@ -394,8 +403,8 @@ export class AppService {
     blockNumber: string,
     txhash: string
   ) {
+    const jobName = `wait_for_${chain}_${txhash}`
     return new Promise<void>((resolve) => {
-      const jobName = `wait_for_${chain}_${txhash}`
       const interval = setInterval(async () => {
         try {
           const { _meta: meta } = await this.subgraph.getSubgraphMeta(chain)
