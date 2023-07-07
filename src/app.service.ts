@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { EvmChain } from 'nftscan-api'
 import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
+import { SchedulerRegistry } from '@nestjs/schedule'
 import { isDefined } from 'class-validator'
 import { lastValueFrom } from 'rxjs'
 
@@ -27,7 +28,8 @@ export class AppService {
     private readonly nftScan: NftscanService,
     private readonly subgraph: SubgraphService,
     private readonly config: ConfigService,
-    private readonly http: HttpService
+    private readonly http: HttpService,
+    private readonly scheduler: SchedulerRegistry
   ) {}
 
   async getAssetsByOwner(params: GetNftsByOwnerDto) {
@@ -323,22 +325,26 @@ export class AppService {
   }
 
   async sendNotify(body: NotifyDto) {
-    const { data, network: chain } = body
-    this.logger.log(data)
-    const { send, receive } = data
+    this.logger.log('Notify', body)
     try {
+      const { data, network: chain } = body
+      const { send, receive } = data
+      const devices: string[] = []
+      const blockNumber = data.block_number.toString()
+
+      await this.waitForBlockNumber(chain, blockNumber)
+
       const [{ assets: sends }, { assets: receives }] = await Promise.all([
-        this.subgraph.getOneAssetsByContractAddress(chain, send),
-        this.subgraph.getOneAssetsByContractAddress(chain, receive)
+        this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
+        this.subgraph.getOneAssetsByContractAddress(chain, receive, blockNumber)
       ])
 
-      const devices: string[] = []
-
       if (sends.length > 0) {
-        devices.push(send)
+        devices.push(sends[0].to)
       }
+
       if (receives.length > 0) {
-        devices.push(receive)
+        devices.push(receives[0].to)
       }
 
       this.logger.log(`Send Notify to ${devices.length} devices`, devices)
@@ -358,6 +364,24 @@ export class AppService {
       } catch (error) {
         this.logger.error(error)
       }
+    })
+  }
+
+  waitForBlockNumber(chain: NotifyDto['network'], blockNumber: string) {
+    return new Promise<void>((resolve) => {
+      const jobName = `wait_for_${chain}_block_number_${blockNumber}`
+      const interval = setInterval(async () => {
+        try {
+          const { _meta: meta } = await this.subgraph.getSubgraphMeta(chain)
+          if (meta.block.number >= +blockNumber) {
+            resolve()
+            this.scheduler.deleteInterval(jobName)
+          }
+        } catch (error) {
+          this.logger.error(error)
+        }
+      }, 1000 * 10)
+      this.scheduler.addInterval(jobName, interval)
     })
   }
 }

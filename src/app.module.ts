@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
+import { ScheduleModule } from '@nestjs/schedule'
 
 import configs, { validationSchema } from '@/config'
 import { AppController } from '@/app.controller'
@@ -34,6 +35,7 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
       ttl: 1000 * 60,
       isGlobal: true
     }),
+    ScheduleModule.forRoot(),
     HttpModule,
     NftscanModule,
     SubgraphModule

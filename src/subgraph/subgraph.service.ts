@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { EvmChain } from 'nftscan-api'
 import { Injectable, Logger } from '@nestjs/common'
 import { gql, request } from 'graphql-request'
+import { isDefined } from 'class-validator'
 
 interface SubgraphAsset {
   type: 'ERC_721' | 'ERC_1155'
@@ -18,23 +19,12 @@ export class SubgraphService {
   private logger = new Logger(SubgraphService.name, { timestamp: true })
 
   private readonly getAssetsDocument = gql`
-    query getAssets(
-      $first: Int
-      $owner: String
-      $token: String
-      $contractAddress: String
-    ) {
+    query getAssets($first: Int, $where: Asset_filter) {
       assets(
         first: $first
+        where: $where
         orderBy: lastUpdateBlockNumber
         orderDirection: desc
-        where: {
-          or: [
-            { to: $owner }
-            { token: $token }
-            { contractAddress: $contractAddress }
-          ]
-        }
       ) {
         type
         token
@@ -42,7 +32,22 @@ export class SubgraphService {
         from
         to
         contractAddress
+        lastUpdateBlockNumber
         lastUpdateBlcokTimestamp
+      }
+    }
+  `
+
+  private readonly getMetaDocument = gql`
+    query getMeta {
+      _meta {
+        deployment
+        hasIndexingErrors
+        block {
+          hash
+          timestamp
+          number
+        }
       }
     }
   `
@@ -71,6 +76,16 @@ export class SubgraphService {
     })
   }
 
+  getSubgraphMeta(chain: keyof typeof this.endpoints) {
+    return request<{
+      _meta: {
+        deployment: string
+        hasIndexingErrors: boolean
+        block: { hash: string; timestamp: number; number: number }
+      }
+    }>(this.endpoints[chain], this.getMetaDocument)
+  }
+
   getAssetsByOwner(
     chain: keyof typeof this.endpoints,
     owner: string,
@@ -80,7 +95,7 @@ export class SubgraphService {
       request<{ assets: SubgraphAsset[] }>(
         this.endpoints[chain],
         this.getAssetsDocument,
-        { owner, first }
+        { where: { to: owner }, first }
       )
     )
   }
@@ -94,20 +109,28 @@ export class SubgraphService {
       request<{ assets: SubgraphAsset[] }>(
         this.endpoints[chain],
         this.getAssetsDocument,
-        { token, first }
+        { where: { token }, first }
       )
     )
   }
 
   getOneAssetsByContractAddress(
     chain: keyof typeof this.endpoints,
-    contractAddress: string
+    contractAddress: string,
+    blockNumber?: string
   ) {
+    const variables: {
+      contractAddress: string
+      lastUpdateBlockNumber?: string
+    } = { contractAddress }
+    if (isDefined(blockNumber)) {
+      variables.lastUpdateBlockNumber = blockNumber
+    }
     return this.fillterAssets(
       request<{ assets: SubgraphAsset[] }>(
         this.endpoints[chain],
         this.getAssetsDocument,
-        { contractAddress, first: 1 }
+        { ...variables, first: 1 }
       )
     )
   }
