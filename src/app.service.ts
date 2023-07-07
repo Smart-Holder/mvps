@@ -339,14 +339,22 @@ export class AppService {
   }
 
   async sendNotify(body: NotifyDto) {
-    this.logger.log('Notify', body)
     try {
       const { data, network: chain } = body
       const { send, receive } = data
       const devices: string[] = []
       const blockNumber = data.block_number.toString()
+      this.logger.log('Notify', {
+        chain,
+        blockNumber,
+        hash: data.hash,
+        send,
+        receive,
+        token: data.contract_address,
+        tokenId: data.contract_token_id
+      })
 
-      await this.waitForBlockNumber(chain, blockNumber)
+      await this.waitForBlockNumber(chain, blockNumber, data.hash)
 
       const [{ assets: sends }, { assets: receives }] = await Promise.all([
         this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
@@ -381,9 +389,13 @@ export class AppService {
     })
   }
 
-  waitForBlockNumber(chain: NotifyDto['network'], blockNumber: string) {
+  waitForBlockNumber(
+    chain: NotifyDto['network'],
+    blockNumber: string,
+    txhash: string
+  ) {
     return new Promise<void>((resolve) => {
-      const jobName = `wait_for_${chain}_block_number_${blockNumber}`
+      const jobName = `wait_for_${chain}_${txhash}`
       const interval = setInterval(async () => {
         try {
           const { _meta: meta } = await this.subgraph.getSubgraphMeta(chain)
