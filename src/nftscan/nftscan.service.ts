@@ -15,6 +15,8 @@ export type EvmAsset = Asset & {
   description: string
   owner?: string
   ownerBase?: string
+  isSubgraph?: boolean
+  subgraphBlcokTimestamp?: number
 }
 
 export type EvmTransaction = Transaction & {
@@ -207,6 +209,7 @@ export class NftscanService {
           ...item
         })
       })
+      assetList.sort((a, b) => b.own_timestamp - a.own_timestamp)
       return assetList
     })
   }
@@ -246,6 +249,7 @@ export class NftscanService {
           ...item
         })
       })
+      assetList.sort((a, b) => b.own_timestamp - a.own_timestamp)
       return assetList
     })
   }

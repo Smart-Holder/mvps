@@ -6,6 +6,7 @@ export class AssetTransactionEntity {
   blockNumber: number
   token: string
   tokenId: string
+  tokenIdInt: string
   fromAddres: string
   toAddress: string
   count: number
@@ -21,6 +22,7 @@ export class AssetTransactionEntity {
   constructor(source: EvmTransaction) {
     this.token = source.contract_address
     this.tokenId = formatHex(source.token_id)
+    this.tokenIdInt = source.token_id
     this.txHash = source.hash
     this.blockNumber = source.block_number
     this.fromAddres = source.send

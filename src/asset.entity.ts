@@ -4,6 +4,7 @@ import { EvmAsset } from '@/nftscan/nftscan.service'
 export class AssetEntity {
   token: string
   tokenId: string
+  tokenIdInt: string
   chain: number
   count: number
   uri: string
@@ -26,6 +27,7 @@ export class AssetEntity {
     this.token = source.contract_address
     this.chain = source.chain
     this.tokenId = formatHex(source.token_id)
+    this.tokenIdInt = source.token_id
     this.count = source.ownsTotal
     this.uri = source.token_uri
     this.name = source.name || source.contract_name

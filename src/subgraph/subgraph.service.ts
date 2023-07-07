@@ -10,6 +10,7 @@ interface SubgraphAsset {
   from: string
   to: string
   contractAddress: string
+  lastUpdateBlcokTimestamp: string
 }
 
 @Injectable()
@@ -30,6 +31,7 @@ export class SubgraphService {
         from
         to
         contractAddress
+        lastUpdateBlcokTimestamp
       }
     }
   `
@@ -55,7 +57,15 @@ export class SubgraphService {
       this.endpoints[chain],
       this.getAssetsDocument,
       { owner, first }
-    )
+    ).then((v) => {
+      v.assets = v.assets.filter(
+        (v) => v.to !== '0x0000000000000000000000000000000000000000'
+      )
+      v.assets.sort(
+        (a, b) => +b.lastUpdateBlcokTimestamp - +a.lastUpdateBlcokTimestamp
+      )
+      return v
+    })
   }
 
   getAssetsByToken(
@@ -67,6 +77,14 @@ export class SubgraphService {
       this.endpoints[chain],
       this.getAssetsDocument,
       { token, first }
-    )
+    ).then((v) => {
+      v.assets = v.assets.filter(
+        (v) => v.to !== '0x0000000000000000000000000000000000000000'
+      )
+      v.assets.sort(
+        (a, b) => +b.lastUpdateBlcokTimestamp - +a.lastUpdateBlcokTimestamp
+      )
+      return v
+    })
   }
 }

@@ -66,7 +66,9 @@ export class AppService {
         items = items.filter((item) => item.token_id === tokenId)
       }
 
-      items.sort((a, b) => b.mint_timestamp - a.mint_timestamp)
+      items
+        .sort((a, b) => b.mint_timestamp - a.mint_timestamp)
+        .sort((_, b) => (b.isSubgraph ? 1 : -1))
 
       const skip = (page - 1) * limit
       const total = items.length
@@ -141,7 +143,9 @@ export class AppService {
         items = items.filter((item) => item.token_id === tokenId)
       }
 
-      items.sort((a, b) => b.mint_timestamp - a.mint_timestamp)
+      items
+        .sort((a, b) => b.mint_timestamp - a.mint_timestamp)
+        .sort((_, b) => (b.isSubgraph ? 1 : -1))
 
       const skip = (page - 1) * limit
       const total = items.length
@@ -240,11 +244,18 @@ export class AppService {
     }))
     return this.nftScan.getEthAssetsInBatches(batchQuery).then((values) =>
       values
-        ? values.map((asset, i) => ({
-            ...asset,
-            owner: assets[i].contractAddress,
-            ownerBase: assets[i].to
-          }))
+        ? values.map((asset) => {
+            const subgraphItem = assets.find(
+              (it) => it.tokenId === asset.token_id
+            )
+            return {
+              ...asset,
+              isSubgraph: true,
+              subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
+              owner: subgraphItem.contractAddress,
+              ownerBase: subgraphItem.to
+            }
+          })
         : []
     )
   }
@@ -260,11 +271,18 @@ export class AppService {
     }))
     return this.nftScan.getPolygonAssetsInBatches(batchQuery).then((values) =>
       values
-        ? values.map((asset, i) => ({
-            ...asset,
-            owner: assets[i].contractAddress,
-            ownerBase: assets[i].to
-          }))
+        ? values.map((asset) => {
+            const subgraphItem = assets.find(
+              (it) => it.tokenId === asset.token_id
+            )
+            return {
+              ...asset,
+              isSubgraph: true,
+              subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
+              owner: subgraphItem.contractAddress,
+              ownerBase: subgraphItem.to
+            }
+          })
         : []
     )
   }
@@ -298,7 +316,14 @@ export class AppService {
   }
 
   sendNotify(body: NotifyDto) {
-    // TODO: send notify to owner
     const { data, network: chain } = body
+    this.logger.log(data)
+    const { send, receive } = data
+    switch (chain) {
+      case EvmChain.ETH:
+        break
+      case EvmChain.POLYGON:
+        break
+    }
   }
 }
