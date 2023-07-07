@@ -1,3 +1,4 @@
+import { EvmChain } from 'nftscan-api'
 import { IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator'
 import { Transform } from 'class-transformer'
 
@@ -72,7 +73,7 @@ export class NotifyDto {
   @IsNotEmpty()
   data: Transaction
   @IsNotEmpty()
-  network: string
+  network: EvmChain.ETH | EvmChain.POLYGON
   @IsNotEmpty()
   type: 'ADDRESS_ACTIVITY' | 'NFT_ACTIVITY'
 }

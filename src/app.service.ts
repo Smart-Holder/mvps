@@ -1,8 +1,12 @@
+import { ConfigService } from '@nestjs/config'
 import { EvmChain } from 'nftscan-api'
+import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { isDefined } from 'class-validator'
+import { lastValueFrom } from 'rxjs'
 
 import { AssetEntity } from '@/asset.entity'
+import { AssetTransactionEntity } from '@/asset.transaction.entity'
 import {
   GetNftsByOwnerDto,
   GetNftsByTokenDto,
@@ -12,15 +16,18 @@ import {
 import { NftscanService } from '@/nftscan/nftscan.service'
 import { SubgraphService } from '@/subgraph/subgraph.service'
 
-import { AssetTransactionEntity } from './asset.transaction.entity'
-
 @Injectable()
 export class AppService {
-  logger = new Logger(AppService.name, { timestamp: true })
+  private readonly logger = new Logger(AppService.name, { timestamp: true })
+  private readonly httpLogger = new Logger(HttpService.name, {
+    timestamp: true
+  })
 
   constructor(
     private readonly nftScan: NftscanService,
-    private readonly subgraph: SubgraphService
+    private readonly subgraph: SubgraphService,
+    private readonly config: ConfigService,
+    private readonly http: HttpService
   ) {}
 
   async getAssetsByOwner(params: GetNftsByOwnerDto) {
@@ -315,15 +322,42 @@ export class AppService {
     }
   }
 
-  sendNotify(body: NotifyDto) {
+  async sendNotify(body: NotifyDto) {
     const { data, network: chain } = body
     this.logger.log(data)
     const { send, receive } = data
-    switch (chain) {
-      case EvmChain.ETH:
-        break
-      case EvmChain.POLYGON:
-        break
+    try {
+      const [{ assets: sends }, { assets: receives }] = await Promise.all([
+        this.subgraph.getOneAssetsByContractAddress(chain, send),
+        this.subgraph.getOneAssetsByContractAddress(chain, receive)
+      ])
+
+      const devices: string[] = []
+
+      if (sends.length > 0) {
+        devices.push(send)
+      }
+      if (receives.length > 0) {
+        devices.push(receive)
+      }
+
+      this.logger.log(`Send Notify to ${devices.length} devices`, devices)
+      this.sendNotifyToDevices(devices)
+    } catch (error) {
+      this.logger.error(error)
     }
+  }
+
+  sendNotifyToDevices(devices: string[]) {
+    const notifyServerUrl = this.config.get<string>('app.notifyServerUrl')
+    devices.forEach(async (addr) => {
+      try {
+        const uri = `${notifyServerUrl}/nft/sendNFTMessage?address=${addr}`
+        const res = await lastValueFrom(this.http.post(uri))
+        this.httpLogger.log(`${res.status} [POST] ${uri}`)
+      } catch (error) {
+        this.logger.error(error)
+      }
+    })
   }
 }

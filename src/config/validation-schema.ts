@@ -15,5 +15,5 @@ export default Joi.object({
   NFT_SCAN_NOTIFY_URL: Joi.string().required(),
   ETH_SUBGRAPH_ENDPOINT: Joi.string().required(),
   POLYGON_SUBGRAPH_ENDPOINT: Joi.string().required(),
-  MVP_SERVER_URL: Joi.string().required()
+  NOTIFY_SERVER_URL: Joi.string().required()
 })

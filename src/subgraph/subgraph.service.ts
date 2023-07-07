@@ -18,12 +18,23 @@ export class SubgraphService {
   private logger = new Logger(SubgraphService.name, { timestamp: true })
 
   private readonly getAssetsDocument = gql`
-    query getAssets($first: Int, $owner: String, $token: String) {
+    query getAssets(
+      $first: Int
+      $owner: String
+      $token: String
+      $contractAddress: String
+    ) {
       assets(
         first: $first
         orderBy: lastUpdateBlockNumber
         orderDirection: desc
-        where: { or: [{ to: $owner }, { token: $token }] }
+        where: {
+          or: [
+            { to: $owner }
+            { token: $token }
+            { contractAddress: $contractAddress }
+          ]
+        }
       ) {
         type
         token
@@ -48,16 +59,8 @@ export class SubgraphService {
     )
   }
 
-  getAssetsByOwner(
-    chain: keyof typeof this.endpoints,
-    owner: string,
-    first = 100
-  ) {
-    return request<{ assets: SubgraphAsset[] }>(
-      this.endpoints[chain],
-      this.getAssetsDocument,
-      { owner, first }
-    ).then((v) => {
+  private fillterAssets(req: Promise<{ assets: SubgraphAsset[] }>) {
+    return req.then((v) => {
       v.assets = v.assets.filter(
         (v) => v.to !== '0x0000000000000000000000000000000000000000'
       )
@@ -68,23 +71,44 @@ export class SubgraphService {
     })
   }
 
+  getAssetsByOwner(
+    chain: keyof typeof this.endpoints,
+    owner: string,
+    first = 100
+  ) {
+    return this.fillterAssets(
+      request<{ assets: SubgraphAsset[] }>(
+        this.endpoints[chain],
+        this.getAssetsDocument,
+        { owner, first }
+      )
+    )
+  }
+
   getAssetsByToken(
     chain: keyof typeof this.endpoints,
     token: string,
     first = 100
   ) {
-    return request<{ assets: SubgraphAsset[] }>(
-      this.endpoints[chain],
-      this.getAssetsDocument,
-      { token, first }
-    ).then((v) => {
-      v.assets = v.assets.filter(
-        (v) => v.to !== '0x0000000000000000000000000000000000000000'
+    return this.fillterAssets(
+      request<{ assets: SubgraphAsset[] }>(
+        this.endpoints[chain],
+        this.getAssetsDocument,
+        { token, first }
       )
-      v.assets.sort(
-        (a, b) => +b.lastUpdateBlcokTimestamp - +a.lastUpdateBlcokTimestamp
+    )
+  }
+
+  getOneAssetsByContractAddress(
+    chain: keyof typeof this.endpoints,
+    contractAddress: string
+  ) {
+    return this.fillterAssets(
+      request<{ assets: SubgraphAsset[] }>(
+        this.endpoints[chain],
+        this.getAssetsDocument,
+        { contractAddress, first: 1 }
       )
-      return v
-    })
+    )
   }
 }

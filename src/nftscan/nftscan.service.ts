@@ -372,13 +372,14 @@ export class NftscanService {
     const appName = this.config.get<string>('app.name')
     const headers = AxiosHeaders.from({ 'X-API-KEY': this.apiKey })
     const data = { ...params, active: true, app_name: appName }
+    const uri = `${this.apiBaseUrl}/v2/notify/filters`
     const req = this.http
-      .post<NotifysResponse>(`${this.apiBaseUrl}/v2/notify/filters`, data, {
+      .post<NotifysResponse>(uri, data, {
         headers
       })
       .pipe(
         map((res) => {
-          this.httpLogger.log(`${res.status} [POST] ${this.apiBaseUrl}`, data)
+          this.httpLogger.log(`${res.status} [POST] ${uri}`, data)
           const { data: responseData, code } = res.data
           if (code !== 200) {
             this.httpLogger.error(responseData)
@@ -437,12 +438,9 @@ export class NftscanService {
       chain
     }
     const isCreate = !data.id
+    const uri = `${this.apiBaseUrl}/v2/notify/${isCreate ? 'create' : 'update'}`
     const req = this.http
-      .post<UpdateNotifyResponse>(
-        `${this.apiBaseUrl}/v2/notify/${isCreate ? 'create' : 'update'}`,
-        data,
-        { headers }
-      )
+      .post<UpdateNotifyResponse>(uri, data, { headers })
       .pipe(
         map((res) => {
           const owner = params.notify_params[0]
@@ -453,7 +451,7 @@ export class NftscanService {
               isCreate ? owner : data.id
             }`
           )
-          this.httpLogger.log(`${res.status} [POST] ${this.apiBaseUrl}`, data)
+          this.httpLogger.log(`${res.status} [POST] ${uri}`, data)
           const { code } = res.data
           if (code !== 200) {
             this.httpLogger.error(res.data)
