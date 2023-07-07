@@ -359,7 +359,7 @@ export class AppService {
         `wait_for_${chain}_${data.hash}`
       )
 
-      if (isDefined(isWaitting)) return
+      if (isWaitting) return
 
       await this.waitForBlockNumber(chain, blockNumber, data.hash)
 
@@ -409,6 +409,10 @@ export class AppService {
       const interval = setInterval(async () => {
         try {
           const { _meta: meta } = await this.subgraph.getSubgraphMeta(chain)
+          this.logger.log(
+            `Wait for block number: ${blockNumber}`,
+            `Current block number: ${meta.block.number}`
+          )
           if (meta.block.number >= +blockNumber) {
             resolve()
             this.scheduler.deleteInterval(jobName)
