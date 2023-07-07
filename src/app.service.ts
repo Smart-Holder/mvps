@@ -354,7 +354,8 @@ export class AppService {
         tokenId: data.contract_token_id
       })
 
-      const isWaitting = this.scheduler.getInterval(
+      const isWaitting = this.scheduler.doesExist(
+        'interval',
         `wait_for_${chain}_${data.hash}`
       )
 
