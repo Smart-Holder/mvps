@@ -1,5 +1,11 @@
 import { EvmChain } from 'nftscan-api'
-import { IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString
+} from 'class-validator'
 import { Transform } from 'class-transformer'
 
 import { Transaction } from './utils'
@@ -35,6 +41,15 @@ export class GetNftsByOwnerDto extends PaginationDto {
   @Transform(({ value }) => +value)
   @IsPositive()
   chain?: number
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true
+    if (value === 'false') return false
+    return undefined
+  })
+  @IsBoolean()
+  onlySubgraph?: boolean
 }
 
 export class GetNftsByTokenDto extends PaginationDto {

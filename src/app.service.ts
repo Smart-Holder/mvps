@@ -8,13 +8,13 @@ import { lastValueFrom } from 'rxjs'
 
 import { AssetEntity } from '@/asset.entity'
 import { AssetTransactionEntity } from '@/asset.transaction.entity'
+import { EvmAsset, NftscanService } from '@/nftscan/nftscan.service'
 import {
   GetNftsByOwnerDto,
   GetNftsByTokenDto,
   GetTransactionsDto,
   NotifyDto
 } from '@/app.dto'
-import { NftscanService } from '@/nftscan/nftscan.service'
 import { SubgraphService } from '@/subgraph/subgraph.service'
 
 @Injectable()
@@ -34,8 +34,16 @@ export class AppService {
 
   async getAssetsByOwner(params: GetNftsByOwnerDto) {
     try {
-      const { owner, chain, token, tokenId, limit = 10, page = 1 } = params
-      let items
+      const {
+        owner,
+        chain,
+        token,
+        tokenId,
+        onlySubgraph,
+        limit = 10,
+        page = 1
+      } = params
+      let items: EvmAsset[] = []
 
       if (isDefined(chain)) {
         if (!this.nftScan.isSupportedChainId(chain)) {
@@ -43,12 +51,16 @@ export class AppService {
         }
         switch (chain) {
           case this.nftScan.chains.eth:
-            items = await this.nftScan.getEthAssetsByAccountAddress(owner)
+            if (!onlySubgraph) {
+              items = await this.nftScan.getEthAssetsByAccountAddress(owner)
+            }
             const eths = await this.getEthAssetsByOwnerWithSubgraph(owner)
             items = items.concat(eths)
             break
           case this.nftScan.chains.polygon:
-            items = await this.nftScan.getPolygonAssetsByAccountAddress(owner)
+            if (!onlySubgraph) {
+              items = await this.nftScan.getPolygonAssetsByAccountAddress(owner)
+            }
             const polygons = await this.getPolygonAssetsByOwnerWithSubgraph(
               owner
             )
@@ -56,10 +68,12 @@ export class AppService {
             break
         }
       } else {
-        items = await Promise.all([
-          this.nftScan.getEthAssetsByAccountAddress(owner),
-          this.nftScan.getPolygonAssetsByAccountAddress(owner)
-        ]).then((items) => items.flat())
+        if (!onlySubgraph) {
+          items = await Promise.all([
+            this.nftScan.getEthAssetsByAccountAddress(owner),
+            this.nftScan.getPolygonAssetsByAccountAddress(owner)
+          ]).then((items) => items.flat())
+        }
 
         const eths = await this.getEthAssetsByOwnerWithSubgraph(owner)
         const polygons = await this.getPolygonAssetsByOwnerWithSubgraph(owner)
