@@ -5,9 +5,9 @@
   "scripts": {
     "build": "rimraf dist && nest build",
     "preinstall": "only-allow pnpm",
-    "postinstall": "husky install && pnpm pretty",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix --quiet ./src",
-    "pretty": "pretty-quick && prettier-package-json --write",
+    "prepare": "husky install || exit 0",
+    "pretty": "pretty-quick --staged && prettier-package-json --write",
     "start": "nest start",
     "start:debug": "nest start --debug --watch",
     "start:dev": "nest start --watch",
