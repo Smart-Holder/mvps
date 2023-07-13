@@ -10,6 +10,8 @@ interface SubgraphAsset {
   tokenId: string
   from: string
   to: string
+  fromCount: number
+  toCount: number
   contractAddress: string
   lastUpdateBlcokTimestamp: string
 }
@@ -31,6 +33,8 @@ export class SubgraphService {
         tokenId
         from
         to
+        fromCount
+        toCount
         contractAddress
         lastUpdateBlockNumber
         lastUpdateBlcokTimestamp

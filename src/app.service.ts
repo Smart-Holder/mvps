@@ -232,6 +232,7 @@ export class AppService {
       values
         ? values.map((asset, i) => ({
             ...asset,
+            ownsTotal: assets[i].toCount,
             owner: assets[i].contractAddress,
             ownerBase: owner
           }))
@@ -252,6 +253,7 @@ export class AppService {
       values
         ? values.map((asset, i) => ({
             ...asset,
+            ownsTotal: assets[i].toCount,
             owner: assets[i].contractAddress,
             ownerBase: owner
           }))
