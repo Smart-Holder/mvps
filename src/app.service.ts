@@ -40,7 +40,7 @@ export class AppService {
         token,
         tokenId,
         onlySubgraph,
-        limit = 10,
+        limit,
         page = 1
       } = params
       let items: EvmAsset[] = []
@@ -93,9 +93,7 @@ export class AppService {
         .sort((a, b) => b.mint_timestamp - a.mint_timestamp)
         .sort((_, b) => (b.isSubgraph ? 1 : -1))
 
-      const skip = (page - 1) * limit
       const total = items.length
-      const totalPage = Math.ceil(total / limit)
 
       if (total > 0) {
         const ethItems = items.filter((item) => item.chain === 1)
@@ -110,12 +108,22 @@ export class AppService {
         }
       }
 
-      return {
-        total,
-        totalPage,
-        items: items
-          .slice(skip, skip + limit)
-          .map((item) => new AssetEntity(item))
+      if (isDefined(limit)) {
+        const skip = (page - 1) * limit
+        const totalPage = Math.ceil(total / limit)
+        return {
+          total,
+          totalPage,
+          items: items
+            .slice(skip, skip + limit)
+            .map((item) => new AssetEntity(item))
+        }
+      } else {
+        return {
+          total,
+          totalPage: 1,
+          items: items.map((item) => new AssetEntity(item))
+        }
       }
     } catch (error) {
       this.logger.error(JSON.stringify(error))
@@ -125,7 +133,7 @@ export class AppService {
 
   async getAssetsByToken(params: GetNftsByTokenDto) {
     try {
-      const { chain, token, tokenId, limit = 10, page = 1 } = params
+      const { chain, token, tokenId, limit, page = 1 } = params
       let items
 
       if (isDefined(chain)) {
@@ -170,15 +178,24 @@ export class AppService {
         .sort((a, b) => b.mint_timestamp - a.mint_timestamp)
         .sort((_, b) => (b.isSubgraph ? 1 : -1))
 
-      const skip = (page - 1) * limit
       const total = items.length
-      const totalPage = Math.ceil(total / limit)
-      return {
-        total,
-        totalPage,
-        items: items
-          .slice(skip, skip + limit)
-          .map((item) => new AssetEntity(item))
+
+      if (isDefined(limit)) {
+        const skip = (page - 1) * limit
+        const totalPage = Math.ceil(total / limit)
+        return {
+          total,
+          totalPage,
+          items: items
+            .slice(skip, skip + limit)
+            .map((item) => new AssetEntity(item))
+        }
+      } else {
+        return {
+          total,
+          totalPage: 1,
+          items: items.map((item) => new AssetEntity(item))
+        }
       }
     } catch (error) {
       this.logger.error(JSON.stringify(error))
