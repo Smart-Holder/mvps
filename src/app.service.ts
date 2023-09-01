@@ -418,13 +418,20 @@ export class AppService {
 
       await this.waitForBlockNumber(chain, blockNumber, data.hash)
 
-      const [{ assets: sends }, { assets: receives }] = await Promise.all([
-        this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
-        this.subgraph.getOneAssetsByContractAddress(chain, receive, blockNumber)
-      ])
+      const [{ assets: sends }, { assets: receives }, { assets }] =
+        await Promise.all([
+          this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
+          this.subgraph.getOneAssetsByContractAddress(
+            chain,
+            receive,
+            blockNumber
+          ),
+          this.subgraph.getAssetsByToken(chain, data.contract_address, 1)
+        ])
 
       this.logger.log('Query Sends', sends)
       this.logger.log('Query Receives', receives)
+      this.logger.log('Query Assets', assets)
 
       if (sends.length > 0) {
         devices.push(sends[0].to)
@@ -432,6 +439,10 @@ export class AppService {
 
       if (receives.length > 0) {
         devices.push(receives[0].to)
+      }
+
+      if (assets.length > 0) {
+        devices.push(assets[0].to)
       }
 
       this.logger.log(`Send Notify to ${devices.length} devices`, devices)
