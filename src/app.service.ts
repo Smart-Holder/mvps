@@ -439,15 +439,30 @@ export class AppService {
       this.logger.log('Query Assets', assets)
 
       if (sends.length > 0) {
-        devices.push(sends[0].to)
+        if (sends[0].from !== '0x0000000000000000000000000000000000000000') {
+          devices.push(sends[0].from)
+        }
+        if (sends[0].to !== '0x0000000000000000000000000000000000000000') {
+          devices.push(sends[0].to)
+        }
       }
 
       if (receives.length > 0) {
-        devices.push(receives[0].to)
+        if (receives[0].from !== '0x0000000000000000000000000000000000000000') {
+          devices.push(receives[0].from)
+        }
+        if (receives[0].to !== '0x0000000000000000000000000000000000000000') {
+          devices.push(receives[0].to)
+        }
       }
 
       if (assets.length > 0) {
-        devices.push(assets[0].to)
+        if (assets[0].from !== '0x0000000000000000000000000000000000000000') {
+          devices.push(assets[0].from)
+        }
+        if (assets[0].to !== '0x0000000000000000000000000000000000000000') {
+          devices.push(assets[0].to)
+        }
       }
 
       this.logger.log(`Send Notify to ${devices.length} devices`, devices)
