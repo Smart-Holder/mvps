@@ -362,6 +362,7 @@ export class AppService {
       const { data, network: chain } = body
       const { send, receive } = data
       const devices: string[] = []
+      this.logger.log('Receive Notify', body)
       const blockNumber = data.block_number.toString()
       this.logger.log('Notify', {
         chain,
