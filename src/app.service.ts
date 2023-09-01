@@ -196,6 +196,23 @@ export class AppService {
 
       const total = items.length
 
+      if (total > 0) {
+        const ethItems = items.filter((item) => item.chain === 1)
+        const polygonItems = items.filter((item) => item.chain === 137)
+
+        ethItems.forEach((item) => {
+          if (!this.notifyAddress.includes(item.owner.toLowerCase())) {
+            this.ownerNotify(item.owner, 1)
+          }
+        })
+
+        polygonItems.forEach((item) => {
+          if (!this.notifyAddress.includes(item.owner.toLowerCase())) {
+            this.ownerNotify(item.owner, 137)
+          }
+        })
+      }
+
       if (isDefined(limit)) {
         const skip = (page - 1) * limit
         const totalPage = Math.ceil(total / limit)
