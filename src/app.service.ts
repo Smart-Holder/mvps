@@ -426,7 +426,12 @@ export class AppService {
             receive,
             blockNumber
           ),
-          this.subgraph.getAssetsByToken(chain, data.contract_address, 1)
+          this.subgraph.getAssetsByToken(
+            chain,
+            data.contract_address,
+            1,
+            blockNumber
+          )
         ])
 
       this.logger.log('Query Sends', sends)

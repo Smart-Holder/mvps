@@ -107,13 +107,23 @@ export class SubgraphService {
   getAssetsByToken(
     chain: keyof typeof this.endpoints,
     token: string,
-    first = 100
+    first = 100,
+    blockNumber?: string
   ) {
+    const variables: {
+      where: {
+        token: string
+        lastUpdateBlockNumber?: string
+      }
+    } = { where: { token } }
+    if (isDefined(blockNumber)) {
+      variables.where.lastUpdateBlockNumber = blockNumber
+    }
     return this.fillterAssets(
       request<{ assets: SubgraphAsset[] }>(
         this.endpoints[chain],
         this.getAssetsDocument,
-        { where: { token }, first }
+        { ...variables, first }
       )
     )
   }
