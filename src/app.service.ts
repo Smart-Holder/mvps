@@ -24,6 +24,8 @@ export class AppService {
     timestamp: true
   })
 
+  private notifyAddress: string[] = []
+
   constructor(
     private readonly nftScan: NftscanService,
     private readonly subgraph: SubgraphService,
@@ -99,13 +101,27 @@ export class AppService {
         const ethItems = items.filter((item) => item.chain === 1)
         const polygonItems = items.filter((item) => item.chain === 137)
 
-        if (ethItems.length > 0) {
-          this.ownerNotify(owner, 1)
-        }
+        ethItems.forEach((item) => {
+          if (item.isSubgraph) {
+            if (!this.notifyAddress.includes(item.owner.toLowerCase())) {
+              this.ownerNotify(item.owner, 1)
+            }
+          }
+          if (!this.notifyAddress.includes(owner.toLowerCase())) {
+            this.ownerNotify(owner, 1)
+          }
+        })
 
-        if (polygonItems.length > 0) {
-          this.ownerNotify(owner, 137)
-        }
+        polygonItems.forEach((item) => {
+          if (item.isSubgraph) {
+            if (!this.notifyAddress.includes(item.owner.toLowerCase())) {
+              this.ownerNotify(item.owner, 137)
+            }
+          }
+          if (!this.notifyAddress.includes(owner.toLowerCase())) {
+            this.ownerNotify(owner, 137)
+          }
+        })
       }
 
       if (isDefined(limit)) {
@@ -339,9 +355,7 @@ export class AppService {
       const current = allNotifiys.find(
         (notify) => notify.notify_params.length < 10000
       )
-      const isExist = isDefined(current)
-        ? current.notify_params.includes(owner.toLowerCase())
-        : false
+      const isExist = this.notifyAddress.includes(owner.toLowerCase())
       if (!isExist) {
         await this.nftScan.updateNotify({
           id: isDefined(current) ? current.id : undefined,
@@ -351,6 +365,11 @@ export class AppService {
             ? [owner, ...current.notify_params]
             : [owner]
         })
+        this.notifyAddress = [
+          owner,
+          ...this.notifyAddress,
+          ...current.notify_params
+        ]
       }
     } catch (error) {
       this.logger.error(error)
@@ -362,7 +381,6 @@ export class AppService {
       const { data, network: chain } = body
       const { send, receive } = data
       const devices: string[] = []
-      this.logger.log('Receive Notify BlockNumber', data.block_number)
       const blockNumber = data.block_number.toString()
       this.logger.log('Notify', {
         chain,
