@@ -68,11 +68,16 @@ export class SubgraphService {
     )
   }
 
-  private fillterAssets(req: Promise<{ assets: SubgraphAsset[] }>) {
+  private fillterAssets(
+    req: Promise<{ assets: SubgraphAsset[] }>,
+    filterZero = true
+  ) {
     return req.then((v) => {
-      v.assets = v.assets.filter(
-        (v) => v.to !== '0x0000000000000000000000000000000000000000'
-      )
+      if (filterZero) {
+        v.assets = v.assets.filter(
+          (v) => v.to !== '0x0000000000000000000000000000000000000000'
+        )
+      }
       v.assets.sort(
         (a, b) => +b.lastUpdateBlcokTimestamp - +a.lastUpdateBlcokTimestamp
       )
@@ -147,7 +152,8 @@ export class SubgraphService {
         this.endpoints[chain],
         this.getAssetsDocument,
         { ...variables, first: 1 }
-      )
+      ),
+      false
     )
   }
 }

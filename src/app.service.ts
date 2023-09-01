@@ -372,7 +372,9 @@ export class AppService {
       const current = allNotifiys.find(
         (notify) => notify.notify_params.length < 10000
       )
-      const isExist = this.notifyAddress.includes(owner.toLowerCase())
+      const isExist = isDefined(current)
+        ? current.notify_params.includes(owner.toLowerCase())
+        : false
       if (!isExist) {
         await this.nftScan.updateNotify({
           id: isDefined(current) ? current.id : undefined,
@@ -382,12 +384,14 @@ export class AppService {
             ? [owner, ...current.notify_params]
             : [owner]
         })
-        this.notifyAddress = [
-          owner,
+      }
+      this.notifyAddress = [
+        ...new Set([
+          owner.toLowerCase(),
           ...this.notifyAddress,
           ...current.notify_params
-        ]
-      }
+        ])
+      ]
     } catch (error) {
       this.logger.error(error)
     }
@@ -418,25 +422,13 @@ export class AppService {
 
       await this.waitForBlockNumber(chain, blockNumber, data.hash)
 
-      const [{ assets: sends }, { assets: receives }, { assets }] =
-        await Promise.all([
-          this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
-          this.subgraph.getOneAssetsByContractAddress(
-            chain,
-            receive,
-            blockNumber
-          ),
-          this.subgraph.getAssetsByToken(
-            chain,
-            data.contract_address,
-            1,
-            blockNumber
-          )
-        ])
+      const [{ assets: sends }, { assets: receives }] = await Promise.all([
+        this.subgraph.getOneAssetsByContractAddress(chain, send, blockNumber),
+        this.subgraph.getOneAssetsByContractAddress(chain, receive, blockNumber)
+      ])
 
       this.logger.log('Query Sends', sends)
       this.logger.log('Query Receives', receives)
-      this.logger.log('Query Assets', assets)
 
       if (sends.length > 0) {
         if (sends[0].from !== '0x0000000000000000000000000000000000000000') {
@@ -453,15 +445,6 @@ export class AppService {
         }
         if (receives[0].to !== '0x0000000000000000000000000000000000000000') {
           devices.push(receives[0].to)
-        }
-      }
-
-      if (assets.length > 0) {
-        if (assets[0].from !== '0x0000000000000000000000000000000000000000') {
-          devices.push(assets[0].from)
-        }
-        if (assets[0].to !== '0x0000000000000000000000000000000000000000') {
-          devices.push(assets[0].to)
         }
       }
 
