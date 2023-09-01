@@ -401,7 +401,7 @@ export class AppService {
     try {
       const { data, network: chain } = body
       const { send, receive } = data
-      const devices: string[] = []
+      let devices: string[] = []
       const blockNumber = data.block_number.toString()
       this.logger.log('Notify', {
         chain,
@@ -447,6 +447,8 @@ export class AppService {
           devices.push(receives[0].to)
         }
       }
+
+      devices = [...new Set(devices)]
 
       this.logger.log(`Send Notify to ${devices.length} devices`, devices)
       this.sendNotifyToDevices(devices)
