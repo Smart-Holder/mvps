@@ -56,14 +56,18 @@ export class AppService {
       } = params
       let items: EvmAsset[] = []
 
-      let cached: CacheValue
+      let cached: CacheValue = {
+        total: -1,
+        totalPage: -1,
+        items: []
+      }
       try {
         cached = await this.getHardwareCacheByOwner(url)
       } catch (error) {
         cached = undefined
       }
 
-      if (isDefined(cached) && cached.total > 0) {
+      if (isDefined(cached) && cached.total > -1) {
         this.logger.log(
           'Get assets by owner (hardware) from cache:',
           url,
