@@ -496,6 +496,7 @@ export class AppService {
   }
 
   async setHardwareCacheByOwner(url: string, value: CacheValue) {
+    this.logger.log('Set Hardware Cache', url)
     await this.cache.set(`HARD:${url}`, value, 1000 * 60 * 60 * 24)
   }
 
