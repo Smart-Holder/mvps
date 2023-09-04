@@ -160,7 +160,7 @@ export class AppService {
           .slice(skip, skip + limit)
           .map((item) => new AssetEntity(item))
         if (isHardware) {
-          await this.setHardwareCacheByOwner(url.toLowerCase(), cache)
+          await this.setHardwareCacheByOwner(url, cache)
         }
         return cache
       } else {
@@ -168,7 +168,7 @@ export class AppService {
         cache.totalPage = 1
         cache.items = items.map((item) => new AssetEntity(item))
         if (isHardware) {
-          this.setHardwareCacheByOwner(url.toLowerCase(), cache)
+          this.setHardwareCacheByOwner(url, cache)
         }
         return cache
       }
@@ -492,12 +492,16 @@ export class AppService {
   }
 
   async getHardwareCacheByOwner(url: string): Promise<CacheValue> {
-    return this.cache.get(`HARD:${url}`)
+    return this.cache.get(`HARD:${url.toLowerCase()}`)
   }
 
   async setHardwareCacheByOwner(url: string, value: CacheValue) {
     this.logger.log('Set Hardware Cache', url)
-    await this.cache.set(`HARD:${url}`, value, 1000 * 60 * 60 * 24)
+    await this.cache.set(
+      `HARD:${url.toLowerCase()}`,
+      value,
+      1000 * 60 * 60 * 24
+    )
   }
 
   async clearHardwareCache(owners?: string[]) {
