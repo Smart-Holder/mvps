@@ -492,6 +492,7 @@ export class AppService {
   }
 
   async getHardwareCacheByOwner(url: string): Promise<CacheValue> {
+    this.logger.log('Get Hardware Cache', url)
     return this.cache.get(`HARD:${url.toLowerCase()}`)
   }
 
