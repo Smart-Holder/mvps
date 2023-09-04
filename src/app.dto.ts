@@ -50,6 +50,15 @@ export class GetNftsByOwnerDto extends PaginationDto {
   })
   @IsBoolean()
   onlySubgraph?: boolean
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true
+    if (value === 'false') return false
+    return undefined
+  })
+  @IsBoolean()
+  isHardware?: boolean
 }
 
 export class GetNftsByTokenDto extends PaginationDto {

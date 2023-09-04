@@ -1,7 +1,9 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { EvmChain } from 'nftscan-api'
 import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { isDefined } from 'class-validator'
 import { lastValueFrom } from 'rxjs'
@@ -17,6 +19,11 @@ import {
 } from '@/app.dto'
 import { SubgraphService } from '@/subgraph/subgraph.service'
 
+type CacheValue = {
+  total: number
+  totalPage: number
+  items: AssetEntity[]
+}
 @Injectable()
 export class AppService {
   private readonly logger = new Logger(AppService.name, { timestamp: true })
@@ -31,10 +38,11 @@ export class AppService {
     private readonly subgraph: SubgraphService,
     private readonly config: ConfigService,
     private readonly http: HttpService,
-    private readonly scheduler: SchedulerRegistry
+    private readonly scheduler: SchedulerRegistry,
+    @Inject(CACHE_MANAGER) private cache: Cache
   ) {}
 
-  async getAssetsByOwner(params: GetNftsByOwnerDto) {
+  async getAssetsByOwner(params: GetNftsByOwnerDto, url: string) {
     try {
       const {
         owner,
@@ -42,10 +50,28 @@ export class AppService {
         token,
         tokenId,
         onlySubgraph,
+        isHardware,
         limit,
         page = 1
       } = params
       let items: EvmAsset[] = []
+
+      let cached: CacheValue
+      try {
+        cached = await this.getHardwareCacheByOwner(url)
+      } catch (error) {
+        cached = undefined
+      }
+
+      if (isDefined(cached) && cached.total > 0) {
+        this.logger.log(
+          'Get assets by owner (hardware) from cache:',
+          url,
+          `total: ${cached.total}`,
+          `items: ${cached.items.length}`
+        )
+        return cached
+      }
 
       if (isDefined(chain)) {
         if (!this.nftScan.isSupportedChainId(chain)) {
@@ -124,22 +150,27 @@ export class AppService {
         })
       }
 
+      const cache = {} as CacheValue
       if (isDefined(limit)) {
         const skip = (page - 1) * limit
         const totalPage = Math.ceil(total / limit)
-        return {
-          total,
-          totalPage,
-          items: items
-            .slice(skip, skip + limit)
-            .map((item) => new AssetEntity(item))
+        cache.total = total
+        cache.totalPage = totalPage
+        cache.items = items
+          .slice(skip, skip + limit)
+          .map((item) => new AssetEntity(item))
+        if (isHardware) {
+          await this.setHardwareCacheByOwner(url.toLowerCase(), cache)
         }
+        return cache
       } else {
-        return {
-          total,
-          totalPage: 1,
-          items: items.map((item) => new AssetEntity(item))
+        cache.total = total
+        cache.totalPage = 1
+        cache.items = items.map((item) => new AssetEntity(item))
+        if (isHardware) {
+          this.setHardwareCacheByOwner(url.toLowerCase(), cache)
         }
+        return cache
       }
     } catch (error) {
       this.logger.error(JSON.stringify(error))
@@ -450,10 +481,51 @@ export class AppService {
 
       devices = [...new Set(devices)]
 
+      this.logger.log('Clear Hardware Cache', devices)
+      await this.clearHardwareCache(devices)
+
       this.logger.log(`Send Notify to ${devices.length} devices`, devices)
       this.sendNotifyToDevices(devices)
     } catch (error) {
       this.logger.error(error)
+    }
+  }
+
+  async getHardwareCacheByOwner(url: string): Promise<CacheValue> {
+    return this.cache.get(`HARD:${url}`)
+  }
+
+  async setHardwareCacheByOwner(url: string, value: CacheValue) {
+    await this.cache.set(`HARD:${url}`, value, 1000 * 60 * 60 * 24)
+  }
+
+  async clearHardwareCache(owners?: string[]) {
+    try {
+      const keys = await this.cache.store.keys()
+      const filterKeys = keys
+        .filter((key) => key.includes('HARD:'))
+        .filter((key) => {
+          if (isDefined(owners)) {
+            return owners.some((owner) => key.includes(owner.toLowerCase()))
+          }
+          return true
+        })
+      this.logger.log('Clear Hardware Cache', filterKeys)
+      await Promise.all(filterKeys.map((key) => this.cache.del(key)))
+      return filterKeys
+    } catch (error) {
+      this.logger.error(error)
+      return []
+    }
+  }
+
+  async getHardwareCacheKeys() {
+    try {
+      const keys = await this.cache.store.keys()
+      return keys.filter((key) => key.includes('HARD:'))
+    } catch (error) {
+      this.logger.error(error)
+      return []
     }
   }
 

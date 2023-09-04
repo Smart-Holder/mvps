@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Request
+} from '@nestjs/common'
 
 import { AppService } from '@/app.service'
 import {
@@ -18,8 +26,8 @@ export class AppController {
   }
 
   @Get('owner/nfts')
-  async getNftsByOwner(@Query() query: GetNftsByOwnerDto) {
-    return this.app.getAssetsByOwner(query)
+  async getNftsByOwner(@Query() query: GetNftsByOwnerDto, @Req() req: Request) {
+    return this.app.getAssetsByOwner(query, req.url)
   }
 
   @Get('token/nfts')
@@ -36,5 +44,17 @@ export class AppController {
   async notify(@Body() body: NotifyDto) {
     await this.app.sendNotify(body)
     return { status: 'ok', time: Date.now() }
+  }
+
+  @Get('caches')
+  async getCaches() {
+    const keys = await this.app.getHardwareCacheKeys()
+    return { status: 'ok', time: Date.now(), keys: keys }
+  }
+
+  @Post('clear/cache')
+  async clearCache() {
+    const clearKeys = await this.app.clearHardwareCache()
+    return { status: 'ok', time: Date.now(), keys: clearKeys }
   }
 }
