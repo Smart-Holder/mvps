@@ -47,9 +47,9 @@ import { TransformInterceptor } from '@/interceptor/transform.interceptor'
       provide: APP_PIPE,
       useFactory: () => new ValidationPipe({ transform: true })
     },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
     { provide: APP_INTERCEPTOR, useClass: HttpCacheInterceptor },
-    { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_INTERCEPTOR, useClass: LoggerInterceptor }
   ]
