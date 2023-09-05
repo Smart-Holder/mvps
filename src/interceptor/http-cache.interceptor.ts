@@ -11,7 +11,7 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     const request = context.switchToHttp().getRequest()
     const { httpAdapter } = this.httpAdapterHost
 
-    this.logger.log(`IsRequestCacheable: ${this.isRequestCacheable(request)}`)
+    this.logger.log(`IsRequestCacheable: ${this.isRequestCacheable(context)}`)
 
     const isGetRequest = httpAdapter.getRequestMethod(request) === 'GET'
 
