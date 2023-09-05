@@ -1,8 +1,12 @@
 import { CacheInterceptor } from '@nestjs/cache-manager'
-import { ExecutionContext, Injectable } from '@nestjs/common'
+import { ExecutionContext, Injectable, Logger } from '@nestjs/common'
 
 @Injectable()
 export class HttpCacheInterceptor extends CacheInterceptor {
+  private readonly logger = new Logger(HttpCacheInterceptor.name, {
+    timestamp: true
+  })
+
   trackBy(context: ExecutionContext): string | undefined {
     const request = context.switchToHttp().getRequest()
     const { httpAdapter } = this.httpAdapterHost
@@ -12,6 +16,7 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     if (!isGetRequest) {
       return undefined
     }
+    this.logger.log(`TrackBy: ${httpAdapter.getRequestUrl(request)}`)
     return httpAdapter.getRequestUrl(request)
   }
 }
