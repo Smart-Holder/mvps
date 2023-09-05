@@ -52,6 +52,12 @@ export class AppController {
     return { status: 'ok', time: Date.now(), keys: keys }
   }
 
+  @Get('caches/all')
+  async getAllCaches() {
+    const keys = await this.app.getCacheKeys()
+    return { status: 'ok', time: Date.now(), keys: keys }
+  }
+
   @Post('clear/cache')
   async clearCache() {
     const clearKeys = await this.app.clearHardwareCache()

@@ -540,6 +540,15 @@ export class AppService {
     }
   }
 
+  async getCacheKeys() {
+    try {
+      return await this.cache.store.keys()
+    } catch (error) {
+      this.logger.error(error)
+      return []
+    }
+  }
+
   sendNotifyToDevices(devices: string[]) {
     const notifyServerUrl = this.config.get<string>('app.notifyServerUrl')
     devices.forEach(async (addr) => {
