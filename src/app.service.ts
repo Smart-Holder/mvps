@@ -64,18 +64,19 @@ export class AppService {
       try {
         cached = await this.getHardwareCacheByOwner(url)
       } catch (error) {
+        this.logger.error(error)
         cached = undefined
       }
 
       if (isDefined(cached) && cached.total > -1) {
         this.logger.log(
-          'Get assets by owner (hardware) from cache:',
-          url,
-          `total: ${cached.total}`,
-          `items: ${cached.items.length}`
+          `Get assets by owner (hardware) from cache: ${cached.items.length}`,
+          url
         )
         return cached
       }
+
+      this.logger.log(`Get assets by owner (hardware) from api`, url)
 
       if (isDefined(chain)) {
         if (!this.nftScan.isSupportedChainId(chain)) {
@@ -177,7 +178,7 @@ export class AppService {
         return cache
       }
     } catch (error) {
-      this.logger.error(JSON.stringify(error))
+      this.logger.error(error)
       return { total: 0, totalPage: 0, items: [] }
     }
   }
