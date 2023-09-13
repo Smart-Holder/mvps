@@ -519,7 +519,7 @@ export class AppService {
           if (isDefined(owners)) {
             return owners.some((owner) => key.includes(owner.toLowerCase()))
           }
-          return true
+          return false
         })
       this.logger.log('Clear Hardware Cache', filterKeys)
       await Promise.all(filterKeys.map((key) => this.cache.del(key)))
