@@ -353,22 +353,27 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getEthAssetsInBatches(batchQuery).then((values) =>
-      values
-        ? values.map((asset) => {
-            const subgraphItem = assets.find(
-              (it) => it.tokenId === asset.token_id
-            )
-            return {
-              ...asset,
-              isSubgraph: true,
-              subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
-              owner: subgraphItem.contractAddress,
-              ownerBase: subgraphItem.to
-            }
-          })
-        : []
+    const batchQuerys = []
+    for (let i = 0; i < batchQuery.length; i += 50) {
+      batchQuerys.push(batchQuery.slice(i, i + 50))
+    }
+    const values = await Promise.all(
+      batchQuerys.map((batch) => this.nftScan.getEthAssetsInBatches(batch))
     )
+    return values
+      ? values.flat().map((asset) => {
+          const subgraphItem = assets.find(
+            (it) => it.tokenId === asset.token_id
+          )
+          return {
+            ...asset,
+            isSubgraph: true,
+            subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
+            owner: subgraphItem.contractAddress,
+            ownerBase: subgraphItem.to
+          }
+        })
+      : []
   }
 
   private async getPolygonAssetsByTokenWithSubgraph(token: string) {
@@ -380,22 +385,27 @@ export class AppService {
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
-    return this.nftScan.getPolygonAssetsInBatches(batchQuery).then((values) =>
-      values
-        ? values.map((asset) => {
-            const subgraphItem = assets.find(
-              (it) => it.tokenId === asset.token_id
-            )
-            return {
-              ...asset,
-              isSubgraph: true,
-              subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
-              owner: subgraphItem.contractAddress,
-              ownerBase: subgraphItem.to
-            }
-          })
-        : []
+    const batchQuerys = []
+    for (let i = 0; i < batchQuery.length; i += 50) {
+      batchQuerys.push(batchQuery.slice(i, i + 50))
+    }
+    const values = await Promise.all(
+      batchQuerys.map((batch) => this.nftScan.getPolygonAssetsInBatches(batch))
     )
+    return values
+      ? values.flat().map((asset) => {
+          const subgraphItem = assets.find(
+            (it) => it.tokenId === asset.token_id
+          )
+          return {
+            ...asset,
+            isSubgraph: true,
+            subgraphBlcokTimestamp: +subgraphItem.lastUpdateBlcokTimestamp,
+            owner: subgraphItem.contractAddress,
+            ownerBase: subgraphItem.to
+          }
+        })
+      : []
   }
 
   async ownerNotify(owner: string, chain: number) {
