@@ -261,7 +261,7 @@ export class NftscanService {
     const contractAddressList = list.map((it) => it.contractAddress)
     return Promise.all([
       this.eth.asset.queryAssetsByFilters({
-        limit: 100,
+        limit: 50,
         contract_address_list: contractAddressList
       }),
       this.eth.collection.queryCollectionsByFilters({
@@ -296,7 +296,7 @@ export class NftscanService {
     const contractAddressList = list.map((it) => it.contractAddress)
     return Promise.all([
       this.polygon.asset.queryAssetsByFilters({
-        limit: 100,
+        limit: 50,
         contract_address_list: contractAddressList
       }),
       this.polygon.collection.queryCollectionsByFilters({
@@ -329,7 +329,7 @@ export class NftscanService {
     tokenId: string
   ): Promise<EvmTransaction[]> {
     return this.eth.transaction
-      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
+      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 50 })
       .then((res) =>
         res
           ? [
@@ -347,7 +347,7 @@ export class NftscanService {
     tokenId: string
   ): Promise<EvmTransaction[]> {
     return this.polygon.transaction
-      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 100 })
+      .getTransactionsByContractAndTokenId(token, tokenId, { limit: 50 })
       .then((res) =>
         res
           ? [
