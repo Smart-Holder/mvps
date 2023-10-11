@@ -17,6 +17,7 @@ export type EvmAsset = Asset & {
   ownerBase?: string
   isSubgraph?: boolean
   subgraphBlcokTimestamp?: number
+  index: number
 }
 
 export type EvmTransaction = Transaction & {
@@ -93,7 +94,8 @@ export class NftscanService {
       const assets: EvmAsset[] = []
       items.forEach((item) => {
         assets.push(
-          ...item.assets.map((asset) => ({
+          ...item.assets.map((asset, index) => ({
+            index,
             chain: this.chains['eth'],
             total: item.items_total,
             ownsTotal: +asset.amount,
@@ -114,7 +116,8 @@ export class NftscanService {
       const assets: EvmAsset[] = []
       items.forEach((item) => {
         assets.push(
-          ...item.assets.map((asset) => ({
+          ...item.assets.map((asset, index) => ({
+            index,
             chain: this.chains['polygon'],
             total: item.items_total,
             ownsTotal: +asset.amount,
@@ -175,7 +178,7 @@ export class NftscanService {
   }
 
   getEthAssetsInBatches(
-    list: { contractAddress: string; tokenId: string }[]
+    list: { index: number; contractAddress: string; tokenId: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     const contractAddressList = [
@@ -199,6 +202,11 @@ export class NftscanService {
           (it) => it.contract_address === item.contract_address
         )
         assetList.push({
+          index: list.findIndex(
+            (it) =>
+              it.contractAddress === item.contract_address &&
+              it.tokenId === item.token_id
+          ),
           chain: this.chains['eth'],
           total: collection.items_total,
           ownsTotal: +item.amount,
@@ -209,13 +217,13 @@ export class NftscanService {
           ...item
         })
       })
-      assetList.sort((a, b) => b.own_timestamp - a.own_timestamp)
+      assetList.sort((a, b) => a.index - b.index)
       return assetList
     })
   }
 
   getPolygonAssetsInBatches(
-    list: { contractAddress: string; tokenId: string }[]
+    list: { index: number; contractAddress: string; tokenId: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     const contractAddressList = [
@@ -239,6 +247,11 @@ export class NftscanService {
           (it) => it.contract_address === item.contract_address
         )
         assetList.push({
+          index: list.findIndex(
+            (it) =>
+              it.contractAddress === item.contract_address &&
+              it.tokenId === item.token_id
+          ),
           chain: this.chains['polygon'],
           total: collection.items_total,
           ownsTotal: +item.amount,
@@ -249,13 +262,13 @@ export class NftscanService {
           ...item
         })
       })
-      assetList.sort((a, b) => b.own_timestamp - a.own_timestamp)
+      assetList.sort((a, b) => a.index - b.index)
       return assetList
     })
   }
 
   getEthAssetsFilters(
-    list: { contractAddress: string }[]
+    list: { index: number; contractAddress: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     const contractAddressList = list.map((it) => it.contractAddress)
@@ -275,6 +288,9 @@ export class NftscanService {
           (it) => it.contract_address === item.contract_address
         )
         assetList.push({
+          index: list.findIndex(
+            (it) => it.contractAddress === item.contract_address
+          ),
           chain: this.chains['eth'],
           total: collection.items_total,
           ownsTotal: +item.amount,
@@ -285,12 +301,13 @@ export class NftscanService {
           ...item
         })
       })
+      assetList.sort((a, b) => a.index - b.index)
       return assetList
     })
   }
 
   getPolygonAssetsFilters(
-    list: { contractAddress: string }[]
+    list: { index: number; contractAddress: string }[]
   ): Promise<EvmAsset[]> {
     if (list.length === 0) return Promise.resolve([])
     const contractAddressList = list.map((it) => it.contractAddress)
@@ -310,6 +327,9 @@ export class NftscanService {
           (it) => it.contract_address === item.contract_address
         )
         assetList.push({
+          index: list.findIndex(
+            (it) => it.contractAddress === item.contract_address
+          ),
           chain: this.chains['polygon'],
           total: collection.items_total,
           ownsTotal: +item.amount,
@@ -320,6 +340,7 @@ export class NftscanService {
           ...item
         })
       })
+      assetList.sort((a, b) => a.index - b.index)
       return assetList
     })
   }

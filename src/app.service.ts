@@ -195,14 +195,14 @@ export class AppService {
         switch (chain) {
           case this.nftScan.chains.eth:
             items = await this.nftScan.getEthAssetsFilters([
-              { contractAddress: token }
+              { index: 0, contractAddress: token }
             ])
             const eths = await this.getEthAssetsByTokenWithSubgraph(token)
             items = items.concat(eths)
             break
           case this.nftScan.chains.polygon:
             items = await this.nftScan.getPolygonAssetsFilters([
-              { contractAddress: token }
+              { index: 0, contractAddress: token }
             ])
             const polygons = await this.getPolygonAssetsByTokenWithSubgraph(
               token
@@ -212,8 +212,12 @@ export class AppService {
         }
       } else {
         items = await Promise.all([
-          this.nftScan.getEthAssetsFilters([{ contractAddress: token }]),
-          this.nftScan.getPolygonAssetsFilters([{ contractAddress: token }])
+          this.nftScan.getEthAssetsFilters([
+            { index: 0, contractAddress: token }
+          ]),
+          this.nftScan.getPolygonAssetsFilters([
+            { index: 0, contractAddress: token }
+          ])
         ]).then((items) => items.flat())
 
         const eths = await this.getEthAssetsByTokenWithSubgraph(token)
@@ -310,7 +314,8 @@ export class AppService {
 
   private async getEthAssetsByOwnerWithSubgraph(owner: string) {
     const { assets } = await this.subgraph.getAssetsByOwner(EvmChain.ETH, owner)
-    const batchQuery = assets.map((asset) => ({
+    const batchQuery = assets.map((asset, i) => ({
+      index: i,
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
@@ -331,7 +336,8 @@ export class AppService {
       EvmChain.POLYGON,
       owner
     )
-    const batchQuery = assets.map((asset) => ({
+    const batchQuery = assets.map((asset, i) => ({
+      index: i,
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
@@ -349,7 +355,8 @@ export class AppService {
 
   private async getEthAssetsByTokenWithSubgraph(token: string) {
     const { assets } = await this.subgraph.getAssetsByToken(EvmChain.ETH, token)
-    const batchQuery = assets.map((asset) => ({
+    const batchQuery = assets.map((asset, i) => ({
+      index: i,
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
@@ -381,7 +388,8 @@ export class AppService {
       EvmChain.POLYGON,
       token
     )
-    const batchQuery = assets.map((asset) => ({
+    const batchQuery = assets.map((asset, i) => ({
+      index: i,
       contractAddress: asset.token,
       tokenId: asset.tokenId
     }))
