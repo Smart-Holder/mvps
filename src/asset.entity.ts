@@ -54,6 +54,14 @@ export class AssetEntity {
     if (!mediaUri.startsWith('http') && !mediaUri.startsWith('/') && mediaUri) {
       mediaUri = `https://ipfs.io/ipfs/${mediaUri}`
     }
+    if (
+      source.content_uri &&
+      !source.content_uri.startsWith('http') &&
+      !source.content_uri.startsWith('ipfs') &&
+      !source.content_uri.startsWith('/')
+    ) {
+      mediaUri = `https://ipfs.io/ipfs/${source.content_uri}`
+    }
     this.media = mediaUri || source.content_uri || ''
     this.mediaOrigin = source.content_uri || ''
     let imgUri = ''
