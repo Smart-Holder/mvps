@@ -27,7 +27,10 @@ export class AssetEntity {
     let metadataJson = {} as { image?: string }
     try {
       metadataJson = JSON.parse(source.metadata_json)
-    } catch (error) {}
+      if (!metadataJson) metadataJson = {}
+    } catch (error) {
+      metadataJson = {}
+    }
     this.token = source.contract_address
     this.chain = source.chain
     this.tokenId = formatHex(source.token_id)
