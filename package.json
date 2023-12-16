@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "mvps",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "scripts": {
     "build": "rimraf dist && nest build",
     "preinstall": "only-allow pnpm",
