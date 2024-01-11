@@ -41,3 +41,5 @@ lerna-debug.log*
 
 # Custom
 src/crud
+
+package-lock.json
